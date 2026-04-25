@@ -1,0 +1,58 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Logging Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    // مسیر ذخیره لاگ‌ها
+    'log_dir' => dirname(__DIR__) . '/storage/logs/',
+
+    // لاگ به فایل
+    'log_to_file' => true,
+
+    // لاگ به دیتابیس (فقط خطاهای مهم)
+    'log_to_database' => true,
+
+    // حداقل سطح لاگ
+    'min_level' => env('LOG_LEVEL', 'debug'),
+
+    // سطوح لاگ که باید در دیتابیس ذخیره شوند
+    'database_levels' => ['emergency', 'alert', 'critical', 'error'],
+
+    // تعداد روزهای نگهداری لاگ‌ها
+    'retention_days' => [
+        'file' => 30,       // فایل‌های لاگ
+        'database' => 90,   // لاگ‌های دیتابیس
+        'activity' => 90,   // فعالیت‌ها
+        'audit' => 365,     // audit trail (یک سال)
+    ],
+
+    // حداکثر سایز فایل لاگ (MB)
+    'max_file_size' => 10,
+
+    // فرمت لاگ
+    'format' => '[{timestamp}] [{level}] {message} {context}',
+
+    // فعال/غیرفعال کردن لاگ در محیط‌های مختلف
+    'enabled' => [
+        'production' => true,
+        'staging' => true,
+        'development' => true,
+        'testing' => false,
+    ],
+
+    // لاگ خودکار برای eventهای خاص
+    'auto_log' => [
+        'login' => true,
+        'logout' => true,
+        'failed_login' => true,
+        'password_reset' => true,
+        'kyc_submit' => true,
+        'kyc_approve' => true,
+        'deposit' => true,
+        'withdrawal' => true,
+    ],
+];
