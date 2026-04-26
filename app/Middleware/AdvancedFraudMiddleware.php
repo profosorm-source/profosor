@@ -5,7 +5,7 @@ namespace App\Middleware;
 use App\Services\AntiFraud\AccountTakeoverService;
 use App\Services\AntiFraud\BrowserFingerprintService;
 use App\Services\AntiFraud\IPQualityService;
-use App\Services\AntiFraud\SessionAnomalyService;
+use App\Services\SessionService;
 use App\Services\RiskDecisionService;
 use App\Services\SessionService;
 use App\Services\UserScoreService;
@@ -16,7 +16,7 @@ class AdvancedFraudMiddleware
 {
     private BrowserFingerprintService $fingerprintService;
     private IPQualityService $ipQualityService;
-    private SessionAnomalyService $sessionAnomalyService;
+    private SessionService $sessionService;
     private AccountTakeoverService $accountTakeoverService;
     private SessionService $sessionService;
     private UserScoreService $scoreService;
@@ -25,7 +25,7 @@ class AdvancedFraudMiddleware
     public function __construct(
         BrowserFingerprintService $fingerprintService,
         IPQualityService $ipQualityService,
-        SessionAnomalyService $sessionAnomalyService,
+        SessionService $sessionService,
         AccountTakeoverService $accountTakeoverService,
         SessionService $sessionService,
         UserScoreService $scoreService,
@@ -33,7 +33,7 @@ class AdvancedFraudMiddleware
     ) {
         $this->fingerprintService = $fingerprintService;
         $this->ipQualityService = $ipQualityService;
-        $this->sessionAnomalyService = $sessionAnomalyService;
+        $this->sessionService = $sessionService;
         $this->accountTakeoverService = $accountTakeoverService;
         $this->sessionService = $sessionService;
         $this->scoreService = $scoreService;
@@ -83,9 +83,9 @@ class AdvancedFraudMiddleware
             }
         }
 
-        $sessionCheck = $this->sessionAnomalyService->analyze($userId, $sessionId);
+        $sessionCheck = $this->sessionService->analyzeAnomaly($userId, $sessionId);
         if ($sessionCheck['is_anomaly']) {
-            $this->sessionAnomalyService->logAnomaly($userId, $sessionId, $sessionCheck);
+            $this->sessionService->logAnomaly($userId, $sessionId, $sessionCheck);
             $this->scoreService->incrementFraudRawScore($userId, (float) $sessionCheck['score'] / 2, 'session_anomaly', [
                 'anomalies' => $sessionCheck['anomalies'],
                 'session_id' => $sessionId,

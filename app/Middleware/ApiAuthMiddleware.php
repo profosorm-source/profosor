@@ -144,6 +144,7 @@ $remaining = $maxAttempts - $this->rateLimiter->hits($key);
 
     private function validateToken(string $token): ?object
     {
+        $hashedToken = hash('sha256', $token);
         return $this->db->fetch(
             "SELECT u.*, at.id AS token_id, at.scopes
              FROM api_tokens at
@@ -152,7 +153,7 @@ $remaining = $maxAttempts - $this->rateLimiter->hits($key);
                AND (at.expires_at IS NULL OR at.expires_at > NOW())
                AND at.revoked = 0
              LIMIT 1",
-            [$token]
+            [$hashedToken]
         ) ?: null;
     }
 
