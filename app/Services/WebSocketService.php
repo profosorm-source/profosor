@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Core\Redis;
+use Core\Redis;
 use Core\Logger;
 use Core\Database;
 
@@ -114,7 +115,14 @@ class WebSocketService
     public function getUserRooms(int $userId): array
     {
         $pattern = self::ROOM_PREFIX . '*:members';
-        $keys = $this->redis->keys($pattern) ?? [];
+        $keys = [];
+        $cursor = '0';
+        do {
+            $result = $this->redis->scan($cursor, 'MATCH', $pattern, 'COUNT', 100);
+            $cursor = $result[0];
+            $keys = array_merge($keys, $result[1]);
+        } while ($cursor !== '0');
+
         $rooms = [];
 
         foreach ($keys as $key) {
@@ -184,8 +192,10 @@ class WebSocketService
         $readyMessages = $this->redis->zRangeByScore($delayedKey, 0, $now, ['limit' => [0, self::BATCH_SIZE]]);
 
         if (!empty($readyMessages)) {
-            // ✅ Remove from delayed queue
-            $this->redis->zRemRangeByScore($delayedKey, 0, $now);
+            // ✅ Remove from delayed queue (only the fetched messages)
+            foreach ($readyMessages as $msgJson) {
+                $this->redis->zRem($delayedKey, $msgJson);
+            }
 
             // ✅ Add to regular queue for polling
             foreach ($readyMessages as $msgJson) {
@@ -491,11 +501,28 @@ class WebSocketService
      */
     public function getStats(): array
     {
-        $delayedKeys = $this->redis->keys(self::DELAYED_QUEUE_PREFIX . '*') ?? [];
+        $delayedPattern = self::DELAYED_QUEUE_PREFIX . '*';
+        $delayedKeys = [];
+        $cursor = '0';
+        do {
+            $result = $this->redis->scan($cursor, 'MATCH', $delayedPattern, 'COUNT', 100);
+            $cursor = $result[0];
+            $delayedKeys = array_merge($delayedKeys, $result[1]);
+        } while ($cursor !== '0');
+
         $delayedCount = 0;
         foreach ($delayedKeys as $key) {
             $delayedCount += $this->redis->zCard($key);
         }
+
+        $roomPattern = self::ROOM_PREFIX . '*:members';
+        $roomKeys = [];
+        $cursor = '0';
+        do {
+            $result = $this->redis->scan($cursor, 'MATCH', $roomPattern, 'COUNT', 100);
+            $cursor = $result[0];
+            $roomKeys = array_merge($roomKeys, $result[1]);
+        } while ($cursor !== '0');
 
         return [
             'online_users' => $this->getOnlineCount(),
@@ -503,7 +530,7 @@ class WebSocketService
                 "SELECT COUNT(*) as count FROM realtime_messages"
             )->fetch()?->count ?? 0,
             'delayed_messages' => $delayedCount,
-            'rooms' => count($this->redis->keys(self::ROOM_PREFIX . '*:members') ?? []),
+            'rooms' => count($roomKeys),
             'batch_size' => self::BATCH_SIZE,
             'delivery_delay' => self::DELIVERY_DELAY,
             'poll_timeout' => self::POLL_TIMEOUT

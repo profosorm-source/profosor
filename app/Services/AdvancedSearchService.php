@@ -6,6 +6,7 @@ namespace App\Services;
 
 use Core\Database;
 use Core\Logger;
+use Core\Cache;
 
 /**
  * AdvancedSearchService - Unified Advanced Search Service
@@ -20,7 +21,7 @@ use Core\Logger;
 class AdvancedSearchService
 {
     private Database $db;
-    private CacheService $cache;
+    private Cache $cache;
     private Logger $logger;
 
     private const CACHE_TTL = 300; // 5 minutes
@@ -28,10 +29,10 @@ class AdvancedSearchService
     private const DEFAULT_LIMIT = 20;
     private const MAX_LIMIT = 100;
 
-    public function __construct(Database $db, CacheService $cache, Logger $logger)
+    public function __construct(Database $db, Logger $logger)
     {
         $this->db = $db;
-        $this->cache = $cache;
+        $this->cache = Cache::getInstance();
         $this->logger = $logger;
     }
 

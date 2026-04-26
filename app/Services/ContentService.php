@@ -8,7 +8,7 @@ use App\Models\ContentRevenue;
 use App\Models\ContentAgreement;
 use App\Services\WalletService;
 use App\Services\NotificationService;
-use App\Services\CacheService;
+use Core\Cache;
 use Psr\Log\LoggerInterface;
 use App\Exceptions\BusinessException;
 
@@ -33,7 +33,7 @@ class ContentService
 
     private WalletService $walletService;
     private NotificationService $notificationService;
-    private CacheService $cacheService;
+    private Cache $cache;
     private ContentSubmission $submissionModel;
     private ContentRevenue $revenueModel;
     private ContentAgreement $agreementModel;
@@ -59,7 +59,6 @@ EOT;
     public function __construct(
         WalletService $walletService,
         NotificationService $notificationService,
-        CacheService $cacheService,
         ContentSubmission $submissionModel,
         ContentRevenue $revenueModel,
         ContentAgreement $agreementModel,
@@ -70,7 +69,7 @@ EOT;
         $this->agreementModel = $agreementModel;
         $this->walletService = $walletService;
         $this->notificationService = $notificationService;
-        $this->cacheService = $cacheService;
+        $this->cache = Cache::getInstance();
         $this->logger = $logger;
     }
 
@@ -851,8 +850,8 @@ EOT;
     private function clearUserCache(int $userId): void
     {
         try {
-            $this->cacheService->delete("user_content_stats_{$userId}");
-            $this->cacheService->delete("user_revenue_{$userId}");
+            $this->cache->forget("user_content_stats_{$userId}");
+            $this->cache->forget("user_revenue_{$userId}");
         } catch (\Throwable $e) {
             $this->logError('Failed to clear cache', $e);
         }

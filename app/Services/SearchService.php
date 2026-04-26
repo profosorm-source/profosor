@@ -6,6 +6,7 @@ namespace App\Services;
 
 use Core\Database;
 use Core\Logger;
+use Core\Cache;
 
 /**
  * SearchService - جستجو و فیلتراسیون یکپارچه برای تمام ماژول‌ها
@@ -19,7 +20,7 @@ use Core\Logger;
 class SearchService
 {
     private Database $db;
-    private CacheService $cache;
+    private Cache $cache;
     private Logger $logger;
     
     private const MODULES = ['social_task', 'influencer', 'vitrine'];
@@ -27,10 +28,10 @@ class SearchService
     private const MAX_LIMIT = 100;
     private const CACHE_TTL = 300; // 5 minutes
 
-    public function __construct(Database $db, CacheService $cache, Logger $logger)
+    public function __construct(Database $db, Logger $logger)
     {
         $this->db     = $db;
-        $this->cache  = $cache;
+        $this->cache  = Cache::getInstance();
         $this->logger = $logger;
     }
 
@@ -107,22 +108,21 @@ class SearchService
 
         try {
             // ✅ Get Redis connection and delete all keys matching pattern
-            $redis = new \Redis();
-            $redis->connect('localhost', 6379);
+            $redis = $this->cache->redis();
             
-            // Pattern: search:{module}:*
-            $pattern = "search:{$module}:*";
-            $keys = $redis->keys($pattern);
-            
-            if (!empty($keys)) {
-                $redis->delete(...$keys);
-                $this->logger->info("search.cache_invalidated", [
-                    'module' => $module,
-                    'keys_deleted' => count($keys)
-                ]);
+            if ($redis) {
+                // Pattern: search:{module}:*
+                $pattern = "chortke:search:{$module}:*";
+                $keys = $redis->keys($pattern);
+                
+                if (!empty($keys)) {
+                    $redis->delete(...$keys);
+                    $this->logger->info("search.cache_invalidated", [
+                        'module' => $module,
+                        'keys_deleted' => count($keys)
+                    ]);
+                }
             }
-            
-            $redis->close();
         } catch (\Exception $e) {
             $this->logger->error("search.cache_invalidation_failed", [
                 'module' => $module,
