@@ -928,8 +928,9 @@ $container->singleton(App\Services\SEOKeywordService::class, function($c) {
 
 $container->singleton(App\Services\SessionService::class, function($c) {
     return new App\Services\SessionService(
-        $c->make(Database::class),
-        $c->make(\App\Models\UserSession::class)
+        $c->make(\App\Models\UserSession::class),
+        $c->make(\App\Services\RiskPolicyService::class),
+        $c->make(\Core\Logger::class)
     );
 });
 
@@ -978,9 +979,7 @@ $container->singleton(\App\Services\AntiFraud\BrowserFingerprintService::class, 
     return new \App\Services\AntiFraud\BrowserFingerprintService($c->make(Database::class));
 });
 
-$container->singleton(\App\Services\AntiFraud\SessionAnomalyService::class, function($c) {
-    return new \App\Services\AntiFraud\SessionAnomalyService($c->make(Database::class));
-});
+
 
 $container->singleton(\App\Services\AntiFraud\AccountTakeoverService::class, function($c) {
     return new \App\Services\AntiFraud\AccountTakeoverService(
@@ -1098,7 +1097,7 @@ $container->singleton(\App\Controllers\PaymentController::class, function($c) {
 });
 
 $container->singleton(\Core\Database::class, function () {
-    return \Core\Database::Instance();
+    return \Core\Database::getInstance();
 });
 
 // ─── Phase 3 Services ─────────────────────────────────────────────────────

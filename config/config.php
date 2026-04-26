@@ -37,9 +37,29 @@ return [
         'token_length' => 64,
     ],
     
-    'rate_limit' => [
-        'max_attempts' => env('RATE_LIMIT_MAX_ATTEMPTS', 5),
-        'decay_minutes' => env('RATE_LIMIT_DECAY_MINUTES', 1),
+    'rate_limits' => [
+        'login' => [
+            'max_attempts' => env('RATE_LIMIT_LOGIN_MAX_ATTEMPTS', 5),
+            'decay_minutes' => env('RATE_LIMIT_LOGIN_DECAY_MINUTES', 15),
+        ],
+        'api' => [
+            'max_attempts' => env('RATE_LIMIT_API_MAX_ATTEMPTS', 100),
+            'decay_minutes' => env('RATE_LIMIT_API_DECAY_MINUTES', 1),
+        ],
+        'upload' => [
+            'max_attempts' => env('RATE_LIMIT_UPLOAD_MAX_ATTEMPTS', 10),
+            'decay_minutes' => env('RATE_LIMIT_UPLOAD_DECAY_MINUTES', 60),
+        ],
+    ],
+    
+    'feature_flags' => [
+        'cache_enabled' => env('FEATURE_CACHE_ENABLED', true),
+        'redis_fallback' => env('FEATURE_REDIS_FALLBACK', true),
+        'advanced_fraud_detection' => env('FEATURE_ADVANCED_FRAUD_DETECTION', true),
+        'realtime_notifications' => env('FEATURE_REALTIME_NOTIFICATIONS', false),
+        'social_reviews' => env('FEATURE_SOCIAL_REVIEWS', true),
+        'influencer_verification' => env('FEATURE_INFLUENCER_VERIFICATION', true),
+        'direct_messaging' => env('FEATURE_DIRECT_MESSAGING', true),
     ],
     
     'upload' => [

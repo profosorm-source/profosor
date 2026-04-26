@@ -68,7 +68,8 @@ $scheduler = new Scheduler();
 // پردازش صف ایمیل‌ها
 $scheduler->everyMinute(function () {
     $service = Container::getInstance()->make(EmailService::class);
-    $result  = $service->processQueue(20); // حداکثر 20 ایمیل در هر دقیقه
+    $batchSize = feature_config('cron_email_batch_size', 'rollout_percentage', 20);
+    $result  = $service->processQueue($batchSize);
     return [
         'sent'   => $result['sent']   ?? 0,
         'failed' => $result['failed'] ?? 0,
@@ -81,12 +82,15 @@ $scheduler->everyMinute(function () {
     $service = Container::getInstance()->make(CryptoVerificationService::class);
 
     // واریزهای pending که هنوز تأیید نشده‌اند (حداکثر ۱۲ ساعت قبل)
+    $hours = feature_config('cron_verification_hours', 'rollout_percentage', 12);
+    $limit = feature_config('cron_verification_limit', 'rollout_percentage', 10);
+
     $pending = $db->fetchAll(
         "SELECT id FROM crypto_deposits
          WHERE status = 'pending'
-           AND created_at >= DATE_SUB(NOW(), INTERVAL 12 HOUR)
+           AND created_at >= DATE_SUB(NOW(), INTERVAL {$hours} HOUR)
          ORDER BY created_at ASC
-         LIMIT 10"
+         LIMIT {$limit}"
     );
 
     $verified = 0;
@@ -103,7 +107,7 @@ $scheduler->everyMinute(function () {
 
 
 // پاک‌سازی کش منقضی‌شده
-$scheduler->everyMinutes(5, function () {
+$scheduler->everyMinutes(feature_config('cron_scheduler_interval', 'rollout_percentage', 5), function () {
     $cleaned = Cache::getInstance()->cleanup();
     return ['cleaned_files' => $cleaned];
 }, 'cache_cleanup');
@@ -185,9 +189,10 @@ $scheduler->daily('02:30', function () {
     }
 
     $logService = \Core\Container::getInstance()->make(\App\Services\LogService::class);
+    $days = feature_config('cron_cleanup_days', 'rollout_percentage', 30);
 
     return [
-        'log_cleanup' => $logService->cleanup(30),
+        'log_cleanup' => $logService->cleanup($days),
     ];
 }, 'cleanup_logs');
 
