@@ -158,8 +158,7 @@ class AdvancedSearchService
         }
 
         try {
-            $redis = new \Redis();
-            $redis->connect('localhost', 6379);
+            $redis = \Core\Cache::getInstance()->redis();
 
             $pattern = "search:{$module}:*";
             $keys = $redis->keys($pattern);
@@ -172,7 +171,7 @@ class AdvancedSearchService
                 ]);
             }
 
-            $redis->close();
+            // No need to close Redis connection as it's managed by Cache
         } catch (\Exception $e) {
             $this->logger->error("search.cache_invalidation_failed", [
                 'module' => $module,

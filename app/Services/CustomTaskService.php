@@ -10,7 +10,7 @@ use App\Services\UserLevelService;
 use App\Services\ReferralCommissionService;
 use App\Services\AntiFraud\BrowserFingerprintService;
 use App\Services\AntiFraud\IPQualityService;
-use App\Services\AntiFraud\SessionAnomalyService;
+use App\Services\SessionService;
 use App\Services\LogService;
 use App\Services\NotificationService;
 use Core\Database;
@@ -34,7 +34,7 @@ class CustomTaskService
     // استفاده از سیستم Anti-Fraud موجود
     private BrowserFingerprintService $fingerprintService;
     private IPQualityService $ipQualityService;
-    private SessionAnomalyService $sessionAnomalyService;
+    private SessionService $sessionService;
 
     public function __construct(
         Database $db,
@@ -48,7 +48,7 @@ class CustomTaskService
         CustomTaskDispute $disputeModel,
         BrowserFingerprintService $fingerprintService,
         IPQualityService $ipQualityService,
-        SessionAnomalyService $sessionAnomalyService
+        SessionService $sessionService
     ) {
         $this->db = $db;
         $this->walletService = $walletService;
@@ -61,7 +61,7 @@ class CustomTaskService
         $this->disputeModel = $disputeModel;
         $this->fingerprintService = $fingerprintService;
         $this->ipQualityService = $ipQualityService;
-        $this->sessionAnomalyService = $sessionAnomalyService;
+        $this->sessionService = $sessionService;
     }
 
     /**
