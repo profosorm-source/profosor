@@ -412,25 +412,15 @@ private static function extractAppOriginFromTrace(\Throwable $exception): array
         $isJson = str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
 
         if ($debug && $isLocal) {
-    if ($isJson) {
-        echo json_encode($error, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-    } else {
-        echo '<pre>' . htmlspecialchars(
-            print_r($error, true),
-            ENT_QUOTES,
-            'UTF-8'
-        ) . '</pre>';
-    }
-} else {
-    if ($isJson) {
-        echo json_encode([
-            'message' => 'خطای سیستمی'
-        ], JSON_UNESCAPED_UNICODE);
-    } else {
-        echo '<h1>خطای سیستمی</h1>';
-        echo '<p>لطفاً بعداً تلاش کنید.</p>';
-    }
-}
+            if ($isJson) {
+                echo json_encode($error, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            } else {
+                echo '<pre>' . htmlspecialchars(
+                    print_r($error, true),
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) . '</pre>';
+            }
         } else {
             if ($isJson) {
                 echo json_encode(['message' => 'خطای سیستمی'], JSON_UNESCAPED_UNICODE);
@@ -444,6 +434,7 @@ private static function extractAppOriginFromTrace(\Throwable $exception): array
 
     self::logPerformance();
 }
+    
     /**
      * ثبت Fatal Error
      */

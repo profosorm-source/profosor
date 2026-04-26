@@ -178,8 +178,10 @@ class Scheduler
 
                 // release lock در صورت خطا هم
             } finally {
-                // lock رو آپدیت نمی‌کنیم تا job بعدی بتونه اجرا بشه
-                // lock فقط برای این اجرا بود
+                // release lock after execution
+                if (file_exists($lockFile)) {
+                    unlink($lockFile);
+                }
             }
         }
 

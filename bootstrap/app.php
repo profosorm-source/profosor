@@ -30,9 +30,7 @@ use App\Services\StoryPromotionService;
 use App\Services\KYCService;
 use App\Services\BannerService;
 use App\Services\TwoFactorService;
-use App\Services\CustomTaskService;
-use App\Services\SEOTaskService;
-use App\Services\UserDashboardService;
+use App\Services\CustomTaskAnalyticsService;
 use App\Models\TaskExecution;
 use App\Models\Transaction;
 use App\Models\ReferralCommission;
@@ -56,6 +54,11 @@ require_once BASE_PATH . '/core/Autoloader.php';
 
 // Helpers از طریق composer autoload (files section) لود می‌شوند
 // نیازی به require_once دستی نیست
+
+// Check APP_KEY
+if (config('app.key') === '') {
+    throw new Exception('APP_KEY must be set in environment variables');
+}
 
 // Container Singleton
 $container = Container::getInstance();
@@ -401,7 +404,10 @@ $container->singleton(App\Controllers\Admin\CustomTaskController::class, functio
 $container->singleton(ContentService::class, function($c) {
     return new ContentService(
         $c->make(WalletService::class),
-        $c->make(NotificationService::class)
+        $c->make(NotificationService::class),
+        $c->make(App\Models\ContentSubmission::class),
+        $c->make(App\Models\ContentRevenue::class),
+        $c->make(App\Models\ContentAgreement::class)
     );
 });
 
@@ -807,7 +813,6 @@ $container->singleton(App\Services\GlobalSearchService::class, function($c) {
 $container->singleton(\App\Services\SearchService::class, function($c) {
     return new \App\Services\SearchService(
         $c->make(\Core\Database::class),
-        $c->make(\App\Services\CacheService::class),
         $c->make(\Core\Logger::class)
     );
 });
@@ -815,7 +820,6 @@ $container->singleton(\App\Services\SearchService::class, function($c) {
 $container->singleton(\App\Services\AdvancedSearchService::class, function($c) {
     return new \App\Services\AdvancedSearchService(
         $c->make(\Core\Database::class),
-        $c->make(\App\Services\CacheService::class),
         $c->make(\Core\Logger::class)
     );
 });
@@ -882,10 +886,6 @@ $container->singleton(\App\Controllers\User\SocialTaskController::class, functio
         $c->make(\App\Services\SocialTask\RatingService::class),
         $c->make(\Core\Logger::class)
     );
-});
-
-$container->singleton(\App\Services\CacheService::class, function($c) {
-    return new \App\Services\CacheService();
 });
 
 $container->singleton(\App\Services\AnalyticsService::class, function($c) {

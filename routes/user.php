@@ -6,6 +6,7 @@
 
 use App\Middleware\AuthMiddleware;
 use App\Middleware\AdvancedFraudMiddleware;
+use App\Middleware\CSRFMiddleware;
 use App\Controllers\User\DashboardController    as UserDashboardController;
 use App\Controllers\User\ProfileController;
 use App\Controllers\User\SettingsController;
@@ -37,6 +38,7 @@ use App\Controllers\User\MessageController;
 
 $auth  = [AuthMiddleware::class];
 $authF = [AuthMiddleware::class, AdvancedFraudMiddleware::class];
+$authCSRF = [AuthMiddleware::class, CSRFMiddleware::class];
 $r     = app()->router;
 
 // ── داشبورد ──────────────────────────────────────────────────────────────
@@ -44,32 +46,32 @@ $r->get('/dashboard', [UserDashboardController::class, 'index'], $authF);
 
 // ── پروفایل ──────────────────────────────────────────────────────────────
 $r->get('/profile',                  [ProfileController::class, 'index'],          $auth);
-$r->post('/profile/update',          [ProfileController::class, 'update'],         $auth);
-$r->post('/profile/change-password', [ProfileController::class, 'changePassword'], $auth);
-$r->post('/profile/upload-avatar',   [ProfileController::class, 'uploadAvatar'],   $auth);
-$r->post('/profile/delete-avatar',   [ProfileController::class, 'deleteAvatar'],   $auth);
+$r->post('/profile/update',          [ProfileController::class, 'update'],         $authCSRF);
+$r->post('/profile/change-password', [ProfileController::class, 'changePassword'], $authCSRF);
+$r->post('/profile/upload-avatar',   [ProfileController::class, 'uploadAvatar'],   $authCSRF);
+$r->post('/profile/delete-avatar',   [ProfileController::class, 'deleteAvatar'],   $authCSRF);
 
 // ── احراز هویت دو مرحله‌ای ───────────────────────────────────────────────
 $r->get('/two-factor',         [TwoFactorController::class, 'index'],   $auth);
-$r->post('/two-factor/enable', [TwoFactorController::class, 'enable'],  $auth);
-$r->post('/two-factor/disable',[TwoFactorController::class, 'disable'], $auth);
+$r->post('/two-factor/enable', [TwoFactorController::class, 'enable'],  $authCSRF);
+$r->post('/two-factor/disable',[TwoFactorController::class, 'disable'], $authCSRF);
 
 // ── جلسات فعال ───────────────────────────────────────────────────────────
 $r->get('/sessions',                      [UserSessionController::class, 'index'],     $auth);
-$r->post('/sessions/terminate/{id}',      [UserSessionController::class, 'terminate'], $auth);
+$r->post('/sessions/terminate/{id}',      [UserSessionController::class, 'terminate'], $authCSRF);
 
 // ── KYC ──────────────────────────────────────────────────────────────────
 $r->get('/kyc',           [UserKYCController::class, 'index'],  $auth);
 $r->get('/kyc/upload',    [UserKYCController::class, 'upload'], $auth);
-$r->post('/kyc/submit',   [UserKYCController::class, 'submit'], $auth);
+$r->post('/kyc/submit',   [UserKYCController::class, 'submit'], $authCSRF);
 $r->get('/kyc/status',    [UserKYCController::class, 'status'], $auth);
 
 // ── کارت‌های بانکی ────────────────────────────────────────────────────────
 $r->get('/bank-cards',                    [UserBankCardController::class, 'index'],      $auth);
 $r->get('/bank-cards/create',             [UserBankCardController::class, 'create'],     $auth);
-$r->post('/bank-cards/store',             [UserBankCardController::class, 'store'],      $auth);
-$r->post('/bank-cards/delete/{id}',       [UserBankCardController::class, 'delete'],     $auth);
-$r->post('/bank-cards/set-default/{id}',  [UserBankCardController::class, 'setDefault'], $auth);
+$r->post('/bank-cards/store',             [UserBankCardController::class, 'store'],      $authCSRF);
+$r->post('/bank-cards/delete/{id}',       [UserBankCardController::class, 'delete'],     $authCSRF);
+$r->post('/bank-cards/set-default/{id}',  [UserBankCardController::class, 'setDefault'], $authCSRF);
 
 // ── اعلان‌ها ──────────────────────────────────────────────────────────────
 $r->get('/notifications',                          [UserNotificationController::class, 'index'],             $auth);

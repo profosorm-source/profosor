@@ -6,6 +6,7 @@
 
 use App\Middleware\AuthMiddleware;
 use App\Middleware\AdminMiddleware;
+use App\Middleware\CSRFMiddleware;
 use App\Controllers\Admin\AuthController          as AdminAuthController;
 use App\Controllers\Admin\DashboardController     as AdminDashboardController;
 use App\Controllers\Admin\UserController          as AdminUserController;
@@ -355,8 +356,15 @@ $r->post('/admin/fraud/device-unblock',    [FraudManagementController::class, 'u
 $r->post('/admin/fraud/reset-score',       [FraudManagementController::class, 'resetFraudScore'],$admin);
 
 // ── Feature Flags ─────────────────────────────────────────────────────────────
-$r->get('/admin/features',        [FeatureFlagController::class, 'index'],  $admin);
-$r->post('/admin/features/toggle',[FeatureFlagController::class, 'toggle'], $admin);
+$r->get('/admin/features',             [FeatureFlagController::class, 'index'],         $admin);
+$r->post('/admin/features/toggle',     [FeatureFlagController::class, 'toggle'],        $admin);
+$r->post('/admin/features/create',     [FeatureFlagController::class, 'create'],        $admin);
+$r->post('/admin/features/update',     [FeatureFlagController::class, 'update'],        $admin);
+$r->post('/admin/features/advanced-update', [FeatureFlagController::class, 'advancedUpdate'], $admin);
+$r->post('/admin/features/delete',     [FeatureFlagController::class, 'delete'],        $admin);
+$r->get('/admin/features/stats',       [FeatureFlagController::class, 'getStats'],      $admin);
+$r->get('/admin/features/metrics/{name}', [FeatureFlagController::class, 'getMetrics'], $admin);
+$r->get('/admin/features/history/{name}', [FeatureFlagController::class, 'getHistory'], $admin);
 
 // ── Audit Trail ───────────────────────────────────────────────────────────────
 $r->get('/admin/audit-trail',        [AuditTrailController::class, 'index'],  $admin);

@@ -147,6 +147,26 @@ if (!function_exists('feature_value')) {
     }
 }
 
+if (!function_exists('feature_config')) {
+    /**
+     * دریافت مقدار از config_values فیچر
+     * 
+     * @param string $name نام فیچر
+     * @param string $key کلید مقدار
+     * @param mixed $default مقدار پیش‌فرض
+     * @return mixed
+     */
+    function feature_config(string $name, string $key, $default = null)
+    {
+        static $model;
+        if (!$model) {
+            $model = app(\App\Models\FeatureFlagUltimate::class);
+        }
+        
+        return $model->getConfigValue($name, $key, $default);
+    }
+}
+
 if (!function_exists('enabled_features')) {
     /**
      * دریافت لیست فیچرهای فعال برای کاربر

@@ -183,7 +183,14 @@ private function safeUnserialize($raw)
     {
         if ($this->driver === 'redis') {
             // فقط کلیدهای این پروژه را پاک می‌کند (نه همه Redis)
-            $keys = $this->redis->keys($this->redisPrefix . '*');
+            $keys = [];
+            $cursor = '0';
+            do {
+                $result = $this->redis->scan($cursor, 'MATCH', $this->redisPrefix . '*', 'COUNT', 100);
+                $cursor = $result[0];
+                $keys = array_merge($keys, $result[1]);
+            } while ($cursor !== '0');
+
             if (!empty($keys)) {
                 $this->redis->del($keys);
             }
@@ -297,6 +304,125 @@ $data = $this->safeUnserialize($raw === false ? null : $raw);
     {
         return $this->redis;
     }
+
+    // ─────────────────────────────────────────────────
+    //  Distributed Locking (برای عملیات concurrent)
+    // ─────────────────────────────────────────────────
+
+    /**
+     * Acquire a distributed lock
+     *
+     * Redis: استفاده از SET NX EX برای atomic locking
+     * File: استفاده از file locking با timeout
+     *
+     * @param string $key نام lock
+     * @param int $ttl ثانیه‌های timeout (فقط Redis)
+     * @return bool آیا lock گرفته شد؟
+     */
+    public function lock(string $key, int $ttl = 30): bool
+    {
+        $lockKey = 'lock:' . $key;
+
+        if ($this->driver === 'redis') {
+            // SET lock:key value unique_id NX EX ttl
+            $uniqueId = uniqid('', true);
+            $result = $this->redis->set(
+                $this->redisKey($lockKey),
+                $uniqueId,
+                ['nx', 'ex' => $ttl]
+            );
+            return $result !== false;
+        }
+
+        // File-based locking with timeout simulation
+        $lockFile = $this->cacheDir . 'locks/' . md5($lockKey) . '.lock';
+        $lockDir = dirname($lockFile);
+        if (!is_dir($lockDir)) {
+            mkdir($lockDir, 0755, true);
+        }
+
+        $fh = fopen($lockFile, 'c');
+        if (!$fh) {
+            return false;
+        }
+
+        // Try to acquire lock with timeout (simulate)
+        $start = microtime(true);
+        while (!flock($fh, LOCK_EX | LOCK_NB)) {
+            if ((microtime(true) - $start) > 1) { // 1 second timeout for file
+                fclose($fh);
+                return false;
+            }
+            usleep(1000); // 1ms
+        }
+
+        // Store file handle for unlock
+        $this->fileLocks[$lockKey] = $fh;
+        return true;
+    }
+
+    /**
+     * Release a distributed lock
+     *
+     * @param string $key نام lock
+     * @return bool آیا unlock موفق بود؟
+     */
+    public function unlock(string $key): bool
+    {
+        $lockKey = 'lock:' . $key;
+
+        if ($this->driver === 'redis') {
+            return (bool) $this->redis->del($this->redisKey($lockKey));
+        }
+
+        // File-based unlock
+        if (!isset($this->fileLocks[$lockKey])) {
+            return false;
+        }
+
+        $fh = $this->fileLocks[$lockKey];
+        flock($fh, LOCK_UN);
+        fclose($fh);
+        unset($this->fileLocks[$lockKey]);
+
+        // Clean up lock file
+        $lockFile = $this->cacheDir . 'locks/' . md5($lockKey) . '.lock';
+        if (file_exists($lockFile)) {
+            @unlink($lockFile);
+        }
+
+        return true;
+    }
+
+    /**
+     * Execute callback with automatic lock/unlock
+     *
+     * مثال:
+     *   $result = cache()->withLock('user:123:update', function() {
+     *       // عملیات atomic
+     *       return doSomething();
+     *   });
+     *
+     * @param string $key نام lock
+     * @param callable $callback عملیات مورد نظر
+     * @param int $ttl ثانیه‌های timeout
+     * @return mixed نتیجه callback یا false اگر lock شکست خورد
+     */
+    public function withLock(string $key, callable $callback, int $ttl = 30): mixed
+    {
+        if (!$this->lock($key, $ttl)) {
+            return false; // Could not acquire lock
+        }
+
+        try {
+            return $callback();
+        } finally {
+            $this->unlock($key);
+        }
+    }
+
+    // Storage for file-based locks
+    private array $fileLocks = [];
 
     // ─────────────────────────────────────────────────
     //  Cleanup — فقط در حالت فایل

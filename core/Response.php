@@ -233,6 +233,10 @@ class Response
     public function back()
     {
         $referer = $_SERVER['HTTP_REFERER'] ?? url();
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        if (parse_url($referer, PHP_URL_HOST) !== $host) {
+            $referer = url();
+        }
         return $this->redirect($referer);
     }
 

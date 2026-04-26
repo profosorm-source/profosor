@@ -25,47 +25,30 @@ class RedisSessionHandler implements \SessionHandlerInterface
 
     private function tryConnectRedis(): void
     {
-        if (!extension_loaded('redis')) {
-            return;
-        }
+        // استفاده از تنظیمات مشترک Cache
+        $cache = \Core\Cache::getInstance();
 
-        $enabled = env('REDIS_ENABLED', 'true');
-        if (in_array(strtolower((string)$enabled), ['false', '0', 'no', 'off'], true)) {
-            return;
-        }
-
-        try {
-            $host     = env('REDIS_HOST', '127.0.0.1');
-            $port     = (int) env('REDIS_PORT', 6379);
-            $password = env('REDIS_PASSWORD', '');
-            $db       = (int) env('REDIS_DB', 0);
-            $timeout  = (float) env('REDIS_TIMEOUT', 1.5);
-            $this->prefix = env('REDIS_PREFIX', 'chortke') . ':session:';
-
-            $r = new \Redis();
-            if (!$r->connect($host, $port, $timeout)) {
-                return;
-            }
-
-            if ($password !== '') {
-                $r->auth($password);
-            }
-
-            $r->select($db);
-            $r->ping();
-
-            $this->redis = $r;
+        if ($cache->driver() === 'redis') {
+            $this->redis = $cache->redis();
             $this->useRedis = true;
 
             if (function_exists('logger')) {
-                $this->logger->info('Session handler: Redis connected', []);
+                try {
+                    logger()->info('Session handler: Redis connected via Cache', []);
+                } catch (\Throwable $e) {
+                    // ignore logger errors
+                }
             }
-        } catch (\Throwable $e) {
+        } else {
             $this->redis = null;
             $this->useRedis = false;
 
             if (function_exists('logger')) {
-                $this->logger->info('warning', 'Session handler fallback to file: ' . $e->getMessage());
+                try {
+                    logger()->info('Session handler: Fallback to file', []);
+                } catch (\Throwable $e) {
+                    // ignore logger errors
+                }
             }
         }
     }
