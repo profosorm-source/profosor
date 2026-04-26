@@ -140,9 +140,9 @@ class SeoAdController extends BaseUserController
             'budget' => $budget,
             'min_payout' => $minPayout,
             'max_payout' => $maxPayout,
-            'target_duration' => (int)($data['target_duration'] ?? 60),
-            'min_score' => (int)($data['min_score'] ?? 40),
-            'max_per_day' => (int)($data['max_per_day'] ?? 10),
+            'target_duration' => (int)($data['target_duration'] ?? feature_config('seo_ad_limits', 'target_duration_default', 60)),
+            'min_score' => (int)($data['min_score'] ?? feature_config('seo_ad_limits', 'min_score_default', 40)),
+            'max_per_day' => (int)($data['max_per_day'] ?? feature_config('seo_ad_limits', 'max_per_day', 10)),
             'deadline' => !empty($data['deadline']) ? $data['deadline'] : null,
         ]);
 

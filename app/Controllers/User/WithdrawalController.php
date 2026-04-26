@@ -220,7 +220,7 @@ public function requestWithdrawalChallenge(): void
         'code_hash'    => password_hash($code, PASSWORD_DEFAULT),
         'expires_at'   => time() + 300,
         'attempts'     => 0,
-        'max_attempts' => 5,
+        'max_attempts' => feature_config('security_limits', 'withdrawal_challenge_max_attempts', 5),
         'created_at'   => time(),
     ];
 
@@ -284,7 +284,7 @@ public function verifyWithdrawalChallenge(): void
     }
 
     $attempts = (int)($challenge['attempts'] ?? 0);
-    $maxAttempts = (int)($challenge['max_attempts'] ?? 5);
+    $maxAttempts = (int)($challenge['max_attempts'] ?? feature_config('security_limits', 'withdrawal_challenge_max_attempts', 5));
 
     if ($attempts >= $maxAttempts) {
         unset($_SESSION['withdraw_challenge']);

@@ -13,19 +13,19 @@ class UserBannerController extends BaseUserController
     public function index(): void {
         $userId = (int)user_id();
         $banners = \App\Models\UserBannerRequest::getByUser($userId);
-        view('user.user-banners.index', ['title'=>'بنرهای تبلیغاتی من','banners'=>$banners,'price'=>(float)setting('user_banner_price_per_day',0)]);
+        view('user.user-banners.index', ['title'=>'بنرهای تبلیغاتی من','banners'=>$banners,'price'=>(float)feature_config('banner_pricing', 'price_per_day', 0)]);
     }
 
     public function create(): void {
         $placements = \App\Models\BannerPlacement::getActive();
-        view('user.user-banners.create', ['title'=>'ثبت درخواست بنر','placements'=>$placements,'pricePerDay'=>(float)setting('user_banner_price_per_day',0)]);
+        view('user.user-banners.create', ['title'=>'ثبت درخواست بنر','placements'=>$placements,'pricePerDay'=>(float)feature_config('banner_pricing', 'price_per_day', 0)]);
     }
 
     public function store(): void {
         $userId = (int)user_id();
         $data = $this->request->body();
         $days = max(1,(int)($data['days']??1));
-        $pricePerDay = (float)setting('user_banner_price_per_day',0);
+        $pricePerDay = (float)feature_config('banner_pricing', 'price_per_day', 0);
         $total = $pricePerDay * $days;
 
         if (!empty($_FILES['image']['name'])) {

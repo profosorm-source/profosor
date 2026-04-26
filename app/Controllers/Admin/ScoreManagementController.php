@@ -311,10 +311,6 @@ class ScoreManagementController
 
     private function flash(string $type, string $message): void
     {
-        if (!isset($_SESSION)) {
-            @session_start();
-        }
-
-        $_SESSION['flash'][$type] = $message;
+        \Core\Session::set('flash.' . $type, $message);
     }
 }
