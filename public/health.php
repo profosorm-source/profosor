@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../helpers/config_helper.php';
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../core/Cache.php';
 
 $checks = [];
 $status = 'healthy';
@@ -15,24 +16,29 @@ try {
     $checks['database'] = ['status' => 'ok'];
 
     // Redis check
-    $redis = new \Redis();
-    $redis->connect(getenv('REDIS_HOST') ?: '127.0.0.1', getenv('REDIS_PORT') ?: 6379);
-    if (getenv('REDIS_PASSWORD')) {
-        $redis->auth(getenv('REDIS_PASSWORD'));
+    $cache = \Core\Cache::getInstance();
+    if ($cache->driver() === 'redis') {
+        $redis = $cache->redis();
+        if ($redis) {
+            $redis->ping();
+            $checks['redis'] = ['status' => 'ok'];
+        } else {
+            $checks['redis'] = ['status' => 'error', 'message' => 'Redis connection failed'];
+            $status = 'unhealthy';
+        }
+    } else {
+        $checks['redis'] = ['status' => 'fallback', 'driver' => 'file'];
     }
-    $redis->ping();
-    $checks['redis'] = ['status' => 'ok'];
 
     $checks['sentry_monitor'] = ['status' => 'ok', 'version' => '1.0'];
     $checks['performance_monitor'] = ['status' => 'ok'];
     $checks['alert_system'] = ['status' => 'ok'];
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     $status = 'unhealthy';
     $checks['error'] = [
         'status' => 'error',
-        'message' => $e->getMessage(),
-        'component' => 'health_check'
+        'message' => 'Internal error occurred'
     ];
 }
 
@@ -44,11 +50,9 @@ $checks['filesystem'] = [
 ];
 if (!$storageWritable) $status = 'unhealthy';
 
-// System resources
+// System resources (remove sensitive info)
 $checks['system'] = [
-    'memory_usage' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB',
-    'cpu_load' => sys_getloadavg()[0] ?? 'N/A',
-    'disk_free' => round(disk_free_space('/') / 1024 / 1024 / 1024, 2) . ' GB'
+    'status' => 'ok'
 ];
 
 $response = [
