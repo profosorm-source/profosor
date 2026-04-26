@@ -5,7 +5,6 @@ namespace App\Models;
 use Core\Model;
 use Core\Database;
 use App\Events\FeatureFlagChanged;
-use App\Services\Cache\RedisCacheAdapter;
 
 /**
  * FeatureFlag Model - Ultimate Version با Redis Support
@@ -18,7 +17,7 @@ class FeatureFlagUltimate extends Model
     private static array $userRoleCache = [];
     private array $requestCache = [];
     
-    private ?RedisCacheAdapter $redis = null;
+    private \Core\Cache $cache;
     private bool $useRedis = false;
     
     private const ALLOWED_UPDATE_FIELDS = [
@@ -32,9 +31,9 @@ class FeatureFlagUltimate extends Model
     {
         parent::__construct($db, $logger);
         
-        // Initialize Redis if available
-        $this->redis = new RedisCacheAdapter();
-        $this->useRedis = $this->redis->isEnabled();
+        // Initialize Cache (with Redis support if available)
+        $this->cache = \Core\Cache::getInstance();
+        $this->useRedis = $this->cache->driver() === 'redis';
         
         if ($this->useRedis) {
             $this->logger->info('feature_flag.redis_enabled', [
@@ -55,7 +54,7 @@ class FeatureFlagUltimate extends Model
         
         // Try Redis first
         if ($this->useRedis) {
-            $cached = $this->redis->get('all_features');
+            $cached = $this->cache->get('ff:all_features');
             
             if ($cached !== null) {
                 self::$cachedFeatures = $cached;
@@ -65,7 +64,7 @@ class FeatureFlagUltimate extends Model
         }
         
         // Load from database
-        $sql = "SELECT * FROM feature_flags ORDER BY priority DESC, name ASC";
+        $sql = "SELECT * FROM feature_flags ORDER BY name ASC";
         $features = $this->db->fetchAll($sql);
         
         foreach ($features as $feature) {
@@ -74,7 +73,7 @@ class FeatureFlagUltimate extends Model
         
         // Cache in Redis
         if ($this->useRedis) {
-            $this->redis->set('all_features', self::$cachedFeatures, 300);
+            $this->cache->set('ff:all_features', self::$cachedFeatures, 3600); // 1 hour
         }
         
         self::$loaded = true;
@@ -93,7 +92,7 @@ class FeatureFlagUltimate extends Model
         
         // Clear Redis cache
         if ($this->useRedis) {
-            $this->redis->flush();
+            $this->cache->delete('ff:all_features');
         }
         
         // Clear Database cache
@@ -239,7 +238,7 @@ class FeatureFlagUltimate extends Model
         // 2. Redis cache (shared across all instances)
         if ($this->useRedis) {
             $redisKey = "check:{$name}:{$userId}";
-            $cached = $this->redis->get($redisKey);
+            $cached = $this->cache->get($redisKey);
             
             if ($cached !== null) {
                 $this->requestCache[$cacheKey] = $cached;
@@ -254,7 +253,7 @@ class FeatureFlagUltimate extends Model
             
             // Cache in Redis too
             if ($this->useRedis) {
-                $this->redis->set("check:{$name}:{$userId}", $dbCacheResult, 300);
+                $this->cache->set("check:{$name}:{$userId}", $dbCacheResult, 300);
             }
             
             return $dbCacheResult;
@@ -331,7 +330,7 @@ class FeatureFlagUltimate extends Model
         $this->requestCache[$cacheKey] = $result;
         
         if ($this->useRedis) {
-            $this->redis->set("check:{$name}:{$userId}", $result, 300);
+            $this->cache->set("check:{$name}:{$userId}", $result, 300);
         }
         
         $this->saveToDatabaseCache($name, $userId, $result);
@@ -392,11 +391,11 @@ class FeatureFlagUltimate extends Model
             
             // Increment counter in Redis
             if ($this->useRedis) {
-                $this->redis->increment("stats:{$name}:checks");
+                $this->cache->increment("stats:{$name}:checks");
                 if ($result) {
-                    $this->redis->increment("stats:{$name}:allowed");
+                    $this->cache->increment("stats:{$name}:allowed");
                 } else {
-                    $this->redis->increment("stats:{$name}:denied");
+                    $this->cache->increment("stats:{$name}:denied");
                 }
             }
         } catch (\Exception $e) {
@@ -438,7 +437,7 @@ class FeatureFlagUltimate extends Model
         return $result;
     }
     
-    public function update(string $name, array $data): bool
+    public function updateByName(string $name, array $data): bool
     {
         $feature = $this->findByName($name);
         
@@ -575,7 +574,7 @@ class FeatureFlagUltimate extends Model
         return $result;
     }
     
-    public function delete(string $name): bool
+    public function deleteByName(string $name): bool
     {
         $feature = $this->findByName($name);
         
@@ -662,7 +661,7 @@ class FeatureFlagUltimate extends Model
         
         // Redis stats
         if ($this->useRedis) {
-            $stats['redis'] = $this->redis->getStats();
+            $stats['redis'] = $this->cache->getStats();
         }
         
         return $stats;
@@ -682,9 +681,9 @@ class FeatureFlagUltimate extends Model
     {
         // Try Redis first for real-time stats
         if ($this->useRedis) {
-            $checks = $this->redis->get("stats:{$name}:checks") ?? 0;
-            $allowed = $this->redis->get("stats:{$name}:allowed") ?? 0;
-            $denied = $this->redis->get("stats:{$name}:denied") ?? 0;
+            $checks = $this->cache->get("stats:{$name}:checks") ?? 0;
+            $allowed = $this->cache->get("stats:{$name}:allowed") ?? 0;
+            $denied = $this->cache->get("stats:{$name}:denied") ?? 0;
             
             if ($checks > 0) {
                 return [[
@@ -711,5 +710,21 @@ class FeatureFlagUltimate extends Model
                 GROUP BY check_reason";
         
         return $this->db->fetchAll($sql, [$name, $hours]) ?: [];
+    }
+    
+    /**
+     * دریافت مقدار تنظیمات از config_values
+     */
+    public function getConfigValue(string $name, string $key, $default = null)
+    {
+        $feature = $this->findByName($name);
+        
+        if (!$feature || !$feature->config_values) {
+            return $default;
+        }
+        
+        $config = json_decode($feature->config_values, true);
+        
+        return $config[$key] ?? $default;
     }
 }

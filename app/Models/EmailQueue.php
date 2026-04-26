@@ -17,7 +17,7 @@ class EmailQueue extends Model
 
         return $this->db->fetchAll(
             "SELECT * FROM " . static::$table . "
-             WHERE status IN ('pending', 'sending')
+             WHERE status = 'pending'
                AND attempts < 3
                AND (scheduled_at IS NULL OR scheduled_at <= :now)
              ORDER BY
@@ -41,7 +41,7 @@ class EmailQueue extends Model
         return $this->db->execute(
             "UPDATE " . static::$table . "
              SET status = 'sending', updated_at = NOW()
-             WHERE id = ?",
+             WHERE id = ? AND status = 'pending'",
             [$emailId]
         ) !== false;
     }
@@ -82,12 +82,13 @@ class EmailQueue extends Model
      */
     public function cleanOldSent(int $days = 30): int
     {
-        return (int)$this->db->execute(
+        $result = $this->db->execute(
             "DELETE FROM " . static::$table . "
              WHERE status = 'sent'
                AND sent_at < DATE_SUB(NOW(), INTERVAL ? DAY)",
             [$days]
         );
+        return $result !== false ? (int)$result : 0;
     }
 
     /**
@@ -95,7 +96,7 @@ class EmailQueue extends Model
      */
     public function archiveOldSent(int $days = 30): int
     {
-        return (int)$this->db->query(
+        $result = $this->db->execute(
             "UPDATE " . static::$table . "
              SET is_archived = 1, archived_at = NOW()
              WHERE status = 'sent'
@@ -103,6 +104,7 @@ class EmailQueue extends Model
                AND (is_archived IS NULL OR is_archived = 0)",
             [$days]
         );
+        return $result !== false ? (int)$result : 0;
     }
 
     /**
