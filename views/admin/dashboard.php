@@ -23,11 +23,11 @@ function actDotColor(string $s): string {
 <div class="welcome-banner">
     <div class="welcome-text">
         <h2>خوش آمدید، <?= e($fullName ?? 'مدیر') ?> 👋</h2>
-        <p>آخرین ورود: <?= jdate('Y/m/d H:i', time()) ?> &nbsp;·&nbsp; پنل مدیریت <?= e(setting('site_name','چورتکه')) ?></p>
+        <p>آخرین ورود: <?= e(jdate('Y/m/d H:i', time())) ?> &nbsp;·&nbsp; پنل مدیریت <?= e(setting('site_name','چورتکه')) ?></p>
     </div>
     <div class="welcome-time">
         <div class="time-big" id="dash-clock">--:--</div>
-        <div class="date-small"><?= jdate('Y/m/d', time()) ?></div>
+        <div class="date-small"><?= e(jdate('Y/m/d', time())) ?></div>
     </div>
 </div>
 
@@ -58,12 +58,12 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">group</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">کل کاربران</div>
-                <div class="stat-value"><?= fa_number(number_format($stats['total_users'] ?? 0)) ?></div>
-                <span class="stat-change up"><span class="material-icons">arrow_upward</span>+<?= fa_number($stats['today_users'] ?? 0) ?> امروز</span>
+                <div class="stat-value"><?= e(fa_number(number_format($stats['total_users'] ?? 0))) ?></div>
+                <span class="stat-change up"><span class="material-icons">arrow_upward</span>+<?= e(fa_number($stats['today_users'] ?? 0)) ?> امروز</span>
             </div>
         </div>
         <div class="stat-footer">
-            <span>این ماه: <strong><?= fa_number($stats['month_users'] ?? 0) ?></strong></span>
+            <span>این ماه: <strong><?= e(fa_number($stats['month_users'] ?? 0) )?></strong></span>
             <a href="<?= url('/admin/users') ?>" class="stat-footer-link">جزئیات <span class="material-icons">chevron_left</span></a>
         </div>
     </div>
@@ -75,12 +75,12 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">payments</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">درآمد این ماه (تومان)</div>
-                <div class="stat-value smaller"><?= fa_number(number_format((int)($stats['monthly_revenue'] ?? 0))) ?></div>
-                <span class="stat-change up"><span class="material-icons">trending_up</span>کل: <?= fa_number(number_format((int)($stats['total_revenue'] ?? 0))) ?></span>
+                <div class="stat-value smaller"><?= e(fa_number(number_format((int)($stats['monthly_revenue'] ?? 0)))) ?></div>
+                <span class="stat-change up"><span class="material-icons">trending_up</span>کل: <?= e(fa_number(number_format((int)($stats['total_revenue'] ?? 0)))) ?></span>
             </div>
         </div>
         <div class="stat-footer">
-            <span>واریز امروز: <strong><?= fa_number(number_format((int)($stats['today_deposits'] ?? 0))) ?></strong></span>
+            <span>واریز امروز: <strong><?= e(fa_number(number_format((int)($stats['today_deposits'] ?? 0)))) ?></strong></span>
             <a href="<?= url('/admin/transactions') ?>" class="stat-footer-link">گزارش <span class="material-icons">chevron_left</span></a>
         </div>
     </div>
@@ -92,14 +92,14 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">assignment</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">تسک‌های فعال</div>
-                <div class="stat-value"><?= fa_number(number_format($stats['active_tasks'] ?? 0)) ?></div>
-                <span class="stat-change warn"><span class="material-icons">hourglass_empty</span>کل: <?= fa_number($stats['total_tasks'] ?? 0) ?></span>
+                <div class="stat-value"><?= e(fa_number(number_format($stats['active_tasks'] ?? 0))) ?></div>
+                <span class="stat-change warn"><span class="material-icons">hourglass_empty</span>کل: <?= e(fa_number($stats['total_tasks'] ?? 0)) ?></span>
             </div>
         </div>
         <?php $taskPct = $stats['total_tasks'] ? round(($stats['active_tasks']/$stats['total_tasks'])*100) : 0; ?>
         <div class="stat-progress">
             <div class="stat-progress-bar"><div class="stat-progress-fill" style="width:<?= $taskPct ?>%"></div></div>
-            <div class="stat-progress-labels"><span>فعال: <?= $taskPct ?>٪</span><span>کل: <?= fa_number($stats['total_tasks'] ?? 0) ?></span></div>
+            <div class="stat-progress-labels"><span>فعال: <?= $taskPct ?>٪</span><span>کل: <?= e(fa_number($stats['total_tasks'] ?? 0)) ?></span></div>
         </div>
     </div>
 
@@ -110,12 +110,12 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">account_balance_wallet</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">موجودی کل کیف‌پول‌ها</div>
-                <div class="stat-value smaller"><?= fa_number(number_format((int)($stats['total_wallet_balance'] ?? 0))) ?></div>
+                <div class="stat-value smaller"><?= e(fa_number(number_format((int)($stats['total_wallet_balance'] ?? 0)))) ?></div>
                 <span class="stat-change neutral"><span class="material-icons">info</span>مجموع کاربران</span>
             </div>
         </div>
         <div class="stat-footer">
-            <span>میانگین هر کاربر: <strong><?= fa_number(number_format((int)(($stats['total_wallet_balance'] ?? 0) / max(1, $stats['total_users'] ?? 1)))) ?></strong></span>
+            <span>میانگین هر کاربر: <strong><?= e(fa_number(number_format((int)(($stats['total_wallet_balance'] ?? 0) / max(1, $stats['total_users'] ?? 1)))) )?></strong></span>
             <a href="<?= url('/admin/transactions') ?>" class="stat-footer-link">کیف‌پول‌ها <span class="material-icons">chevron_left</span></a>
         </div>
     </div>
@@ -132,10 +132,10 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">support_agent</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">تیکت‌های باز</div>
-                <div class="stat-value"><?= fa_number($stats['open_tickets'] ?? 0) ?></div>
+                <div class="stat-value"><?= e(fa_number($stats['open_tickets'] ?? 0)) ?></div>
                 <div class="stat-desc">
                     <?php if (($stats['urgent_tickets'] ?? 0) > 0): ?><span class="pulse-dot"></span><?php endif; ?>
-                    <?= fa_number($stats['urgent_tickets'] ?? 0) ?> تیکت اورژانسی
+                    <?= e(fa_number($stats['urgent_tickets'] ?? 0)) ?> تیکت اورژانسی
                 </div>
             </div>
         </div>
@@ -152,12 +152,12 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">how_to_reg</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">KYC در انتظار</div>
-                <div class="stat-value"><?= fa_number($stats['pending_kyc'] ?? 0) ?></div>
+                <div class="stat-value"><?= e(fa_number($stats['pending_kyc'] ?? 0)) ?></div>
                 <div class="stat-desc"><span class="material-icons">schedule</span>نیاز به تأیید مدیر</div>
             </div>
         </div>
         <div class="stat-footer">
-            <span>تأیید شده: <strong><?= fa_number($stats['approved_kyc'] ?? 0) ?></strong></span>
+            <span>تأیید شده: <strong><?= e(fa_number($stats['approved_kyc'] ?? 0)) ?></strong></span>
             <a href="<?= url('/admin/kyc') ?>" class="stat-footer-link">بررسی <span class="material-icons">chevron_left</span></a>
         </div>
     </div>
@@ -169,12 +169,12 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">account_balance</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">برداشت در انتظار</div>
-                <div class="stat-value"><?= fa_number($stats['pending_withdrawals'] ?? 0) ?></div>
-                <div class="stat-desc"><span class="material-icons">payments</span><?= fa_number(number_format((int)($stats['pending_withdrawal_amount'] ?? 0))) ?> تومان</div>
+                <div class="stat-value"><?= e(fa_number($stats['pending_withdrawals'] ?? 0)) ?></div>
+                <div class="stat-desc"><span class="material-icons">payments</span><?= e(fa_number(number_format((int)($stats['pending_withdrawal_amount'] ?? 0)))) ?> تومان</div>
             </div>
         </div>
         <div class="stat-footer">
-            <span>میانگین: <strong><?= fa_number(number_format((int)(($stats['pending_withdrawal_amount'] ?? 0) / max(1, $stats['pending_withdrawals'] ?? 1)))) ?></strong></span>
+            <span>میانگین: <strong><?= e(fa_number(number_format((int)(($stats['pending_withdrawal_amount'] ?? 0) / max(1, $stats['pending_withdrawals'] ?? 1)))) )?></strong></span>
             <a href="<?= url('/admin/withdrawals') ?>" class="stat-footer-link">تأیید <span class="material-icons">chevron_left</span></a>
         </div>
     </div>
@@ -186,14 +186,14 @@ if (!empty($alerts)):
             <div class="stat-card-icon"><span class="material-icons">check_circle</span></div>
             <div class="stat-card-body">
                 <div class="stat-label">کاربران فعال</div>
-                <div class="stat-value"><?= fa_number($stats['active_users'] ?? 0) ?></div>
-                <div class="stat-desc"><span class="material-icons">block</span>مسدود: <?= fa_number($stats['banned_users'] ?? 0) ?></div>
+                <div class="stat-value"><?= e(fa_number($stats['active_users'] ?? 0)) ?></div>
+                <div class="stat-desc"><span class="material-icons">block</span>مسدود: <?= e(fa_number($stats['banned_users'] ?? 0)) ?></div>
             </div>
         </div>
         <?php $activePct = $stats['total_users'] ? round(($stats['active_users'] / $stats['total_users']) * 100) : 0; ?>
         <div class="stat-progress">
             <div class="stat-progress-bar"><div class="stat-progress-fill" style="width:<?= $activePct ?>%"></div></div>
-            <div class="stat-progress-labels"><span>فعال: <?= $activePct ?>٪</span><span>کل: <?= fa_number($stats['total_users'] ?? 0) ?></span></div>
+            <div class="stat-progress-labels"><span>فعال: <?= $activePct ?>٪</span><span>کل: <?= e(fa_number($stats['total_users'] ?? 0)) ?></span></div>
         </div>
     </div>
 
@@ -360,8 +360,8 @@ if (!empty($alerts)):
             </div>
         </td>
         <td style="font-size:12px;direction:ltr"><?= e($mobile) ?></td>
-        <td><span class="badge <?= $roleColors[$role] ?? 'badge-muted' ?>"><?= $roleNames[$role] ?? 'کاربر' ?></span></td>
-        <td><span class="badge <?= $statusColors[$status] ?? 'badge-muted' ?>"><?= $statusNames[$status] ?? '-' ?></span></td>
+        <td><span class="badge <?= e($roleColors[$role] ?? 'badge-muted' ) ?>"><?= e($roleNames[$role] ?? 'کاربر' ) ?></span></td>
+        <td><span class="badge <?= e($statusColors[$status] ?? 'badge-muted' ) ?>"><?= e($statusNames[$status] ?? '-' ) ?></span></td>
         <td style="font-size:11px;color:var(--text-muted)"><?= jdate('Y/m/d', strtotime($createdAt)) ?></td>
         <td>
             <div class="action-btns">
@@ -494,29 +494,29 @@ if (!empty($alerts)):
                 <div class="w-mini-grid">
                     <div class="w-mini-stat" style="--ms-accent:var(--up)">
                         <div class="w-mini-label">کاربران فعال</div>
-                        <div class="w-mini-val"><?= fa_number($stats['active_users'] ?? 0) ?></div>
-                        <div class="w-mini-sub" style="color:var(--up)">+<?= fa_number($stats['today_users'] ?? 0) ?> امروز</div>
+                        <div class="w-mini-val"><?= e(fa_number($stats['active_users'] ?? 0)) ?></div>
+                        <div class="w-mini-sub" style="color:var(--up)">+<?= e(fa_number($stats['today_users'] ?? 0)) ?> امروز</div>
                     </div>
                     <div class="w-mini-stat" style="--ms-accent:var(--down)">
                         <div class="w-mini-label">کاربران مسدود</div>
-                        <div class="w-mini-val"><?= fa_number($stats['banned_users'] ?? 0) ?></div>
+                        <div class="w-mini-val"><?= e(fa_number($stats['banned_users'] ?? 0)) ?></div>
                         <div class="w-mini-sub" style="color:var(--down)"><?= (100 - $activeRate) ?>٪ کل</div>
                     </div>
                     <div class="w-mini-stat" style="--ms-accent:var(--warn)">
                         <div class="w-mini-label">تسک‌های فعال</div>
-                        <div class="w-mini-val"><?= fa_number($stats['active_tasks'] ?? 0) ?></div>
-                        <div class="w-mini-sub">از <?= fa_number($stats['total_tasks'] ?? 0) ?> کل</div>
+                        <div class="w-mini-val"><?= e(fa_number($stats['active_tasks'] ?? 0)) ?></div>
+                        <div class="w-mini-sub">از <?= e(fa_number($stats['total_tasks'] ?? 0)) ?> کل</div>
                     </div>
                     <div class="w-mini-stat" style="--ms-accent:var(--down)">
                         <div class="w-mini-label">تیکت اورژانسی</div>
-                        <div class="w-mini-val"><?= fa_number($stats['urgent_tickets'] ?? 0) ?></div>
+                        <div class="w-mini-val"><?= e(fa_number($stats['urgent_tickets'] ?? 0)) ?></div>
                         <div class="w-mini-sub" style="color:var(--down)">بی‌پاسخ</div>
                     </div>
                     <div class="w-mini-stat w-mini-full" style="--ms-accent:var(--info)">
                         <div style="display:flex;justify-content:space-between;align-items:center">
                             <div>
                                 <div class="w-mini-label">KYC در انتظار</div>
-                                <div class="w-mini-val"><?= fa_number($stats['pending_kyc'] ?? 0) ?></div>
+                                <div class="w-mini-val"><?= e(fa_number($stats['pending_kyc'] ?? 0)) ?></div>
                             </div>
                             <a href="<?= url('/admin/kyc') ?>" class="w-inline-link">
                                 بررسی<span class="material-icons">chevron_left</span>

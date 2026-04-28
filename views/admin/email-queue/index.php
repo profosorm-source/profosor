@@ -7,8 +7,8 @@
 /** @var int $totalPages */
 $title = 'صف ایمیل';
 // مقادیر filter — از Controller inject می‌شوند؛ fallback امن از superglobal
-$filterStatus = $filterStatus ?? htmlspecialchars($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8');
-$filterSearch = $filterSearch ?? htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
+$filterStatus = $filterStatus ?? e($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8');
+$filterSearch = $filterSearch ?? e($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
 include BASE_PATH . '/views/layouts/admin.php';
 ?>
 

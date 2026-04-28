@@ -83,9 +83,9 @@ ob_start();
     <div class="pagination">
         <?php
         $allowedQs = array_filter([
-            'status'   => htmlspecialchars($_GET['status']   ?? '', ENT_QUOTES, 'UTF-8'),
-            'platform' => htmlspecialchars($_GET['platform'] ?? '', ENT_QUOTES, 'UTF-8'),
-            'search'   => htmlspecialchars($_GET['search']   ?? '', ENT_QUOTES, 'UTF-8'),
+            'status'   => e($_GET['status']   ?? '', ENT_QUOTES, 'UTF-8'),
+            'platform' => e($_GET['platform'] ?? '', ENT_QUOTES, 'UTF-8'),
+            'search'   => e($_GET['search']   ?? '', ENT_QUOTES, 'UTF-8'),
         ]);
         for ($i = 1; $i <= $totalPages; $i++):
             $qs = $allowedQs;

@@ -30,8 +30,8 @@ ob_start();
             <div class="d-flex gap-1">
                 <button class="btn btn-xs btn-outline-primary edit-btn"
                         data-key="<?= e($key) ?>"
-                        data-title="<?= e(htmlspecialchars($tpl['override_title'] ?? $tpl['default_title'])) ?>"
-                        data-message="<?= e(htmlspecialchars($tpl['override_message'] ?? $tpl['default_message'])) ?>"
+                        data-title="<?= e(e($tpl['override_title'] ?? $tpl['default_title'])) ?>"
+                        data-message="<?= e(e($tpl['override_message'] ?? $tpl['default_message'])) ?>"
                         data-vars='<?= json_encode($tpl['variables'], JSON_UNESCAPED_UNICODE) ?>'>
                     <i class="fas fa-edit"></i> ویرایش
                 </button>

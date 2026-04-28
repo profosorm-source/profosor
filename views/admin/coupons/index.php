@@ -40,7 +40,7 @@ ob_start();
                                         <tr>
                                             <td><?= e($coupon->id) ?></td>
                                             <td>
-                                                <span class="badge bg-gradient-info"><?= e(htmlspecialchars($coupon->code)) ?></span>
+                                                <span class="badge bg-gradient-info"><?= e(e($coupon->code)) ?></span>
                                             </td>
                                             <td>
                                                 <?php if ($coupon->type === 'percent'): ?>

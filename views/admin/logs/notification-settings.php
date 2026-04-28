@@ -61,10 +61,10 @@ ob_start();
                                             <div class="small">
                                                 <strong>سطوح هشدار:</strong>
                                                 <?php foreach ($alertLevels as $level): ?>
-                                                    <span class="badge bg-<?= 
-                                                        $level === 'critical' ? 'danger' : 
-                                                        ($level === 'high' ? 'warning' : 'info') 
-                                                    ?>"><?= $level ?></span>
+                                                    <span class="badge bg-<?= e(
+    $level === 'critical' ? 'danger' :
+    ($level === 'high' ? 'warning' : 'info')
+) ?>"><?= e($level) ?></span>
                                                 <?php endforeach; ?>
                                             </div>
                                         </div>
@@ -123,10 +123,10 @@ ob_start();
                                             </div>
 
                                             <div class="small">
-                                                <span class="badge bg-<?= 
+                                                <span class="badge bg-<?= e(
                                                     $rule->severity === 'critical' ? 'danger' : 
                                                     ($rule->severity === 'high' ? 'warning' : 'info') 
-                                                ?>">
+                                                ) ?>">
                                                     <?= $rule->severity ?>
                                                 </span>
 

@@ -18,10 +18,10 @@
     <h2>تنظیمات سیاست‌های ریسک</h2>
 
     <?php if (!empty($_SESSION['flash']['success'])): ?>
-        <div class="msg"><?php echo htmlspecialchars($_SESSION['flash']['success']); ?></div>
+        <div class="msg"><?php echo e($_SESSION['flash']['success']); ?></div>
     <?php endif; ?>
     <?php if (!empty($_SESSION['flash']['error'])): ?>
-        <div class="msg"><?php echo htmlspecialchars($_SESSION['flash']['error']); ?></div>
+        <div class="msg"><?php echo e($_SESSION['flash']['error']); ?></div>
     <?php endif; ?>
 
     <table>
@@ -40,13 +40,13 @@
             <tr>
                 <form method="post" action="/admin/risk-policies/update">
                     <td>
-                        <input type="text" name="domain" value="<?php echo htmlspecialchars($p['domain']); ?>" readonly>
+                        <input type="text" name="domain" value="<?php echo e($p['domain']); ?>" readonly>
                     </td>
                     <td>
-                        <input type="text" name="key_name" value="<?php echo htmlspecialchars($p['key_name']); ?>" readonly>
+                        <input type="text" name="key_name" value="<?php echo e($p['key_name']); ?>" readonly>
                     </td>
                     <td>
-                        <input type="text" name="value" value="<?php echo htmlspecialchars((string)$p['value']); ?>">
+                        <input type="text" name="value" value="<?php echo e((string)$p['value']); ?>">
                     </td>
                     <td>
                         <select name="value_type">
@@ -58,7 +58,7 @@
                         </select>
                     </td>
                     <td>
-                        <input type="text" name="description" value="<?php echo htmlspecialchars((string)$p['description']); ?>">
+                        <input type="text" name="description" value="<?php echo e((string)$p['description']); ?>">
                     </td>
                     <td>
                         <button type="submit">ذخیره</button>

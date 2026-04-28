@@ -2,9 +2,9 @@
 ob_start();
 $title = 'مدیریت کاربران';
 $layout = 'admin';
-$search       = $search       ?? htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
-$roleFilter   = $roleFilter   ?? htmlspecialchars($_GET['role']   ?? '', ENT_QUOTES, 'UTF-8');
-$statusFilter = $statusFilter ?? htmlspecialchars($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8');
+$search       = $search       ?? e($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
+$roleFilter   = $roleFilter   ?? e($_GET['role']   ?? '', ENT_QUOTES, 'UTF-8');
+$statusFilter = $statusFilter ?? e($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8');
 $gradients   = ['linear-gradient(135deg,#5b8af5,#7c3aed)','linear-gradient(135deg,#10b981,#06b6d4)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#a855f7,#ec4899)','linear-gradient(135deg,#06b6d4,#3b82f6)'];
 $roleColors  = ['admin'=>'badge-danger','support'=>'badge-warning','user'=>'badge-muted'];
 $roleNames   = ['admin'=>'مدیر','support'=>'پشتیبان','user'=>'کاربر'];

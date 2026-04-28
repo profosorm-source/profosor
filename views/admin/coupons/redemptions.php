@@ -32,9 +32,9 @@ ob_start();
                                     <tr>
                                         <td><?= e($redemption->id) ?></td>
                                         <td>
-                                            <span class="badge bg-gradient-info"><?= htmlspecialchars($redemption->code ?? 'N/A') ?></span>
+                                            <span class="badge bg-gradient-info"><?= e($redemption->code ?? 'N/A') ?></span>
                                         </td>
-                                        <td><?= htmlspecialchars($redemption->username ?? 'ناشناس') ?></td>
+                                        <td><?= e($redemption->username ?? 'ناشناس') ?></td>
                                         <td><?= number_format($redemption->original_amount) ?></td>
                                         <td class="text-danger">-<?= number_format($redemption->discount_amount) ?></td>
                                         <td><strong><?= number_format($redemption->final_amount) ?></strong></td>
@@ -56,7 +56,7 @@ ob_start();
                                                 <?= e($typeLabels[$redemption->entity_type] ?? $redemption->entity_type) ?>
                                             </span>
                                         </td>
-                                        <td><small><?= e(htmlspecialchars($redemption->ip_address)) ?></small></td>
+                                        <td><small><?= e(e($redemption->ip_address)) ?></small></td>
                                         <td><?= jdate('Y/m/d H:i', strtotime($redemption->created_at)) ?></td>
                                     </tr>
                                 <?php endforeach; ?>

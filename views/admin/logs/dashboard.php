@@ -150,10 +150,10 @@ ob_start();
                                                 </small>
                                             </td>
                                             <td>
-                                                <span class="badge bg-<?= 
-                                                    $error->level === 'CRITICAL' ? 'danger' : 
-                                                    ($error->level === 'ERROR' ? 'warning' : 'secondary') 
-                                                ?>">
+                                                <span class="badge bg-<?= e(
+    $error->level === 'CRITICAL' ? 'danger' :
+    ($error->level === 'ERROR' ? 'warning' : 'secondary')
+) ?>">
                                                     <?= $error->level ?>
                                                 </span>
                                             </td>
@@ -237,10 +237,9 @@ ob_start();
                     </div>
                     <div class="card-body">
                         <?php foreach ($predictions as $prediction): ?>
-                            <div class="alert alert-<?= 
-                                $prediction['severity'] === 'critical' ? 'danger' : 
-                                ($prediction['severity'] === 'high' ? 'warning' : 'info') 
-                            ?> mb-2">
+                            <div class="alert alert-<?= e(
+    $prediction['severity'] === 'critical' ? 'danger' :
+    ($prediction['severity'] === 'high' ? 'warning' : 'info')) ?>">
                                 <strong><?= e($prediction['message']) ?></strong>
                                 <p class="mb-0 small mt-1">
                                     نوع: <?= e($prediction['type']) ?>

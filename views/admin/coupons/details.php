@@ -15,7 +15,7 @@ ob_start();
                     <table class="table table-sm">
                         <tr>
                             <th>کد:</th>
-                            <td><span class="badge bg-gradient-info"><?= e(htmlspecialchars($coupon->code)) ?></span></td>
+                            <td><span class="badge bg-gradient-info"><?= e(e($coupon->code)) ?></span></td>
                         </tr>
                         <tr>
                             <th>نوع:</th>
@@ -171,7 +171,7 @@ ob_start();
                                 <?php else: ?>
                                     <?php foreach ($recent_uses as $use): ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($use->username ?? 'ناشناس') ?></td>
+                                            <td><?= e($use->username ?? 'ناشناس') ?></td>
                                             <td><?= number_format($use->original_amount) ?></td>
                                             <td class="text-danger">-<?= number_format($use->discount_amount) ?></td>
                                             <td><strong><?= number_format($use->final_amount) ?></strong></td>

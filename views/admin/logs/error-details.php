@@ -41,10 +41,10 @@ ob_start();
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-<?= 
-                        $error->level === 'CRITICAL' ? 'danger' : 
-                        ($error->level === 'ERROR' ? 'warning' : 'secondary') 
-                    ?> mb-0">
+                    <div class="alert alert-<?= e(
+    $error->level === 'CRITICAL' ? 'danger' :
+    ($error->level === 'ERROR' ? 'warning' : 'secondary')
+) ?>">
                         <h5><?= e($error->message) ?></h5>
                     </div>
                 </div>
@@ -163,11 +163,11 @@ ob_start();
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1">
                             <span class="text-muted">سطح:</span>
-                            <span class="badge bg-<?= 
-                                $error->level === 'CRITICAL' ? 'danger' : 
-                                ($error->level === 'ERROR' ? 'warning' : 'secondary') 
-                            ?>">
-                                <?= $error->level ?>
+                            <span class="badge bg-<?= e(
+    $error->level === 'CRITICAL' ? 'danger' :
+    ($error->level === 'ERROR' ? 'warning' : 'secondary')
+) ?>">
+                                 <?= e($error->level) ?>
                             </span>
                         </div>
                         <div class="d-flex justify-content-between mb-1">

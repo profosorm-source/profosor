@@ -20,12 +20,12 @@
             <div class="lg:col-span-2 bg-white rounded-lg shadow-sm border p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">متن پیام</h2>
                 <div class="prose prose-sm text-gray-800">
-                    <p><?php echo nl2br(htmlspecialchars($report['message'])); ?></p>
+                    <p><?php echo nl2br(e($report['message'])); ?></p>
                 </div>
                 <div class="mt-6 space-y-3 text-sm text-gray-600">
-                    <div>گزارش‌دهنده: <?php echo htmlspecialchars($report['reporter_name']); ?> (<?php echo htmlspecialchars($report['reporter_email']); ?>)</div>
-                    <div>وضعیت گزارش: <?php echo htmlspecialchars($report['status']); ?></div>
-                    <div>دلیل: <?php echo htmlspecialchars($report['reason']); ?></div>
+                    <div>گزارش‌دهنده: <?php echo e($report['reporter_name']); ?> (<?php echo e($report['reporter_email']); ?>)</div>
+                    <div>وضعیت گزارش: <?php echo e($report['status']); ?></div>
+                    <div>دلیل: <?php echo e($report['reason']); ?></div>
                     <div>ارسال شده در: <?php echo format_time($report['created_at']); ?></div>
                 </div>
 
@@ -56,7 +56,7 @@
                     <?php else: ?>
                         <?php foreach ($user_messages as $message): ?>
                             <div class="border rounded-lg p-3 bg-gray-50">
-                                <p class="text-sm text-gray-900"><?php echo htmlspecialchars(substr($message['message'], 0, 120)); ?></p>
+                                <p class="text-sm text-gray-900"><?php echo e(substr($message['message'], 0, 120)); ?></p>
                                 <div class="text-xs text-gray-500 mt-2">
                                     به کاربر #<?php echo $message['recipient_id']; ?> در <?php echo format_time($message['created_at']); ?>
                                 </div>

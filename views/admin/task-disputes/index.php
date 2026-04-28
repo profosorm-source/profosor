@@ -68,8 +68,8 @@ ob_start();
         <?php
         // فقط پارامترهای مجاز را در URL pagination قرار می‌دهیم
         $allowedQs = array_filter([
-            'status' => htmlspecialchars($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8'),
-            'search' => htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8'),
+            'status' => e($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8'),
+            'search' => e($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8'),
         ]);
         for ($i = 1; $i <= $totalPages; $i++):
             $qs = $allowedQs;

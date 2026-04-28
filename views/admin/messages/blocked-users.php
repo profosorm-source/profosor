@@ -36,9 +36,9 @@
                         <?php foreach ($blocked as $item): ?>
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 text-sm text-gray-900"><?php echo $item['id']; ?></td>
-                                <td class="px-6 py-4 text-sm text-gray-900"><?php echo htmlspecialchars($item['blocker_name']); ?></td>
-                                <td class="px-6 py-4 text-sm text-gray-900"><?php echo htmlspecialchars($item['blocked_name']); ?></td>
-                                <td class="px-6 py-4 text-sm text-gray-700"><?php echo htmlspecialchars($item['reason']); ?></td>
+                                <td class="px-6 py-4 text-sm text-gray-900"><?php echo e($item['blocker_name']); ?></td>
+                                <td class="px-6 py-4 text-sm text-gray-900"><?php echo e($item['blocked_name']); ?></td>
+                                <td class="px-6 py-4 text-sm text-gray-700"><?php echo e($item['reason']); ?></td>
                                 <td class="px-6 py-4 text-sm text-gray-500"><?php echo format_time($item['created_at']); ?></td>
                             </tr>
                         <?php endforeach; ?>

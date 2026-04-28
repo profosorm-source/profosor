@@ -8,7 +8,7 @@ ob_start();
         <div class="col-md-8 mx-auto">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">ویرایش کوپن: <?= e(htmlspecialchars($coupon->code)) ?></h5>
+                    <h5 class="mb-0">ویرایش کوپن: <?= e(e($coupon->code)) ?></h5>
                 </div>
                 <div class="card-body">
                     <form id="editCouponForm">
@@ -20,7 +20,7 @@ ob_start();
                                 <label class="form-label">کد کوپن</label>
                                 <input type="text" 
                                        class="form-control" 
-                                       value="<?= e(htmlspecialchars($coupon->code)) ?>"
+                                       value="<?= e(e($coupon->code)) ?>"
                                        disabled>
                             </div>
 

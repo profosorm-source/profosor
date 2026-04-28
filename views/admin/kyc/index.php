@@ -2,8 +2,8 @@
 ob_start();
 $title  = 'بررسی احراز هویت (KYC)';
 $layout = 'admin';
-$statusFilter = $statusFilter ?? htmlspecialchars($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8');
-$searchFilter = $searchFilter ?? htmlspecialchars($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
+$statusFilter = $statusFilter ?? e($_GET['status'] ?? '', ENT_QUOTES, 'UTF-8');
+$searchFilter = $searchFilter ?? e($_GET['search'] ?? '', ENT_QUOTES, 'UTF-8');
 $statusColors = ['pending'=>'badge-warning','under_review'=>'badge-info','verified'=>'badge-success','rejected'=>'badge-danger'];
 $statusNames  = ['pending'=>'در انتظار','under_review'=>'در بررسی','verified'=>'تأیید شده','rejected'=>'رد شده'];
 $docTypes     = ['national_id'=>'کارت ملی','passport'=>'پاسپورت','driving_license'=>'گواهینامه'];

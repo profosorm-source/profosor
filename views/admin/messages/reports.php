@@ -84,8 +84,8 @@
                                 <td class="px-6 py-4 text-sm text-gray-900">#<?php echo $report['id']; ?></td>
                                 <td class="px-6 py-4 text-sm">
                                     <div>
-                                        <p class="font-medium text-gray-900"><?php echo htmlspecialchars($report['reporter_name']); ?></p>
-                                        <p class="text-gray-500"><?php echo htmlspecialchars($report['reporter_email']); ?></p>
+                                        <p class="font-medium text-gray-900"><?php echo e($report['reporter_name']); ?></p>
+                                        <p class="text-gray-500"><?php echo e($report['reporter_email']); ?></p>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900"><?php echo $report['reason']; ?></td>

@@ -87,11 +87,11 @@ ob_start();
             </div>
             <div class="card-body">
                 <!-- وضعیت -->
-                <div class="alert alert-<?= 
+                <div class="alert alert-<?= e(
                     $withdrawal->status === 'completed' ? 'success' : 
                     ($withdrawal->status === 'rejected' ? 'danger' : 
                     ($withdrawal->status === 'processing' ? 'info' : 'warning')) 
-                ?> mb-4">
+                ) ?>">
                     <strong>وضعیت:</strong>
                     <?php
                     $statusLabels = [

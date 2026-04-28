@@ -46,7 +46,7 @@
                     <ul class="space-y-3 text-sm text-gray-700">
                         <?php foreach ($top_reporters as $reporter): ?>
                             <li class="flex justify-between">
-                                <span><?php echo htmlspecialchars($reporter['name']); ?></span>
+                                <span><?php echo e($reporter['name']); ?></span>
                                 <span class="font-semibold"><?php echo $reporter->count; ?></span>
                             </li>
                         <?php endforeach; ?>

@@ -24,7 +24,7 @@
     </style>
 </head>
 <body>
-    <h2>مدیریت امتیاز کاربر: <?php echo htmlspecialchars($user['username'] ?? ('#'.$user['id'])); ?></h2>
+    <h2>مدیریت امتیاز کاربر: <?php echo e($user['username'] ?? ('#'.$user['id'])); ?></h2>
 
     <div class="box">
         <strong>Fraud Raw:</strong> <?php echo (float)$fraud_raw; ?> |
@@ -73,10 +73,10 @@
         <?php foreach ($fraud_adjustments as $a): ?>
             <tr>
                 <td><?php echo (int)$a['id']; ?></td>
-                <td><?php echo htmlspecialchars($a['operation']); ?></td>
-                <td><?php echo htmlspecialchars((string)$a['value']); ?></td>
-                <td><?php echo htmlspecialchars((string)$a['reason']); ?></td>
-                <td><?php echo htmlspecialchars((string)$a['expires_at']); ?></td>
+                <td><?php echo e($a['operation']); ?></td>
+                <td><?php echo e((string)$a['value']); ?></td>
+                <td><?php echo e((string)$a['reason']); ?></td>
+                <td><?php echo e((string)$a['expires_at']); ?></td>
                 <td>
                     <form method="post" action="/admin/scores/adjustments/<?php echo (int)$a['id']; ?>/revoke">
                         <input type="hidden" name="reason" value="manual_revoke">
@@ -99,10 +99,10 @@
         <?php foreach ($task_adjustments as $a): ?>
             <tr>
                 <td><?php echo (int)$a['id']; ?></td>
-                <td><?php echo htmlspecialchars($a['operation']); ?></td>
-                <td><?php echo htmlspecialchars((string)$a['value']); ?></td>
-                <td><?php echo htmlspecialchars((string)$a['reason']); ?></td>
-                <td><?php echo htmlspecialchars((string)$a['expires_at']); ?></td>
+                <td><?php echo e($a['operation']); ?></td>
+                <td><?php echo e((string)$a['value']); ?></td>
+                <td><?php echo e((string)$a['reason']); ?></td>
+                <td><?php echo e((string)$a['expires_at']); ?></td>
                 <td>
                     <form method="post" action="/admin/scores/adjustments/<?php echo (int)$a['id']; ?>/revoke">
                         <input type="hidden" name="reason" value="manual_revoke">
@@ -125,11 +125,11 @@
         <?php foreach ($events as $e): ?>
             <tr>
                 <td><?php echo (int)$e['id']; ?></td>
-                <td><?php echo htmlspecialchars($e['domain']); ?></td>
-                <td><?php echo htmlspecialchars($e['source']); ?></td>
-                <td><?php echo htmlspecialchars((string)$e['delta']); ?></td>
-                <td><pre style="white-space: pre-wrap;"><?php echo htmlspecialchars((string)$e['meta_json']); ?></pre></td>
-                <td><?php echo htmlspecialchars((string)$e['created_at']); ?></td>
+                <td><?php echo e($e['domain']); ?></td>
+                <td><?php echo e($e['source']); ?></td>
+                <td><?php echo e((string)$e['delta']); ?></td>
+                <td><pre style="white-space: pre-wrap;"><?php echo e((string)$e['meta_json']); ?></pre></td>
+                <td><?php echo e((string)$e['created_at']); ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>

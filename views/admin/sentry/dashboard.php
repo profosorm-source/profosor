@@ -373,7 +373,7 @@ $pageTitle = 'مانیتورینگ سیستم - Sentry';
                 <?php foreach (array_slice($data['overview']['trending_issues'] ?? [], 0, 10) as $issue): ?>
                 <tr onclick="window.location.href='/admin/sentry/issues/<?= $issue->id ?>'">
                     <td>
-                        <strong><?= htmlspecialchars(substr($issue->title ?? '', 0, 80)) ?></strong>
+                        <strong><?= e(substr($issue->title ?? '', 0, 80)) ?></strong>
                     </td>
                     <td>
                         <span class="badge <?= $issue->level ?>"><?= strtoupper($issue->level ?? 'error') ?></span>
