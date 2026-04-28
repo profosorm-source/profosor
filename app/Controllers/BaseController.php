@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Session;
 use Core\Request;
 use Core\Response;
+use App\Services\PolicyService;
 
 /**
  * BaseController — پایه تمام کنترلرهای پروژه
@@ -30,6 +31,7 @@ abstract class BaseController
     protected Session  $session;
     protected Request  $request;
     protected Response $response;
+    protected PolicyService $policyService;
 
     /**
      * Container، Request/Response/Session را inject می‌کند.
@@ -42,6 +44,7 @@ abstract class BaseController
         $this->request  = $container->make(Request::class);
         $this->response = $container->make(Response::class);
         $this->session  = $container->make(Session::class);
+        $this->policyService = $container->make(PolicyService::class);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -69,12 +72,19 @@ abstract class BaseController
         }
     }
 
+use App\Services\RolePolicy;
+
     /** اگر admin نباشد → 403 */
     protected function requireAdmin(): void
     {
-        $role = $this->session->get('user_role');
-        // ✅ فقط admin و super_admin اجازت داشتن (support نه)
-        if (!in_array($role, ['admin', 'super_admin'], true)) {
+        $userId = $this->userId();
+        if (!$userId) {
+            $this->requireAuth();
+            return;
+        }
+
+        // استفاده از PolicyService (Sprint 5) برای centralized authorization
+        if (!$this->policyService->isAdmin($userId)) {
             if (is_ajax()) {
                 $this->response->error('دسترسی غیرمجاز', [], 403);
                 exit;
@@ -87,12 +97,14 @@ abstract class BaseController
     /** بررسی permission خاص */
     protected function requirePermission(string $permission): void
     {
-        if ($this->session->get('user_role') === 'super_admin') {
+        $userId = $this->userId();
+        if (!$userId) {
+            $this->requireAuth();
             return;
         }
 
-        $permissions = $this->session->get('user_permissions', []);
-        if (!in_array($permission, (array) $permissions, true)) {
+        // استفاده از PolicyService (Sprint 5)
+        if (!$this->policyService->authorize($permission, $userId)) {
             if (is_ajax()) {
                 $this->response->error('مجوز کافی ندارید', [], 403);
                 exit;

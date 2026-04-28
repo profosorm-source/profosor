@@ -62,7 +62,7 @@ class DebugController extends BaseController
     }
 
     $this->response->html(
-        '<pre style="direction:ltr;text-align:left;">' . \htmlspecialchars($out, ENT_QUOTES, 'UTF-8') . '</pre>'
+        '<pre style="direction:ltr;text-align:left;">' . \e($out, ENT_QUOTES, 'UTF-8') . '</pre>'
     );
 }
 }

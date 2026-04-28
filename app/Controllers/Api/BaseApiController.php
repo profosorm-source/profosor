@@ -3,6 +3,7 @@
 namespace App\Controllers\Api;
 
 use Core\Request;
+use Core\Container;
 
 /**
  * BaseApiController - کنترلر پایه API
@@ -15,9 +16,10 @@ abstract class BaseApiController
     protected Request $request;
 
     public function __construct()
-{
-    header('Content-Type: application/json; charset=utf-8');
-}
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->request = Container::getInstance()->make(Request::class);
+    }
     /** پاسخ موفق */
     protected function success(mixed $data = null, string $message = '', int $code = 200): never
     {

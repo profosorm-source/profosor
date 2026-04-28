@@ -63,6 +63,7 @@ class TokenController extends BaseApiController
     }
 
     $token = bin2hex(random_bytes(32));
+    $hashedToken = hash('sha256', $token);
     $expiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
 
     $name = trim((string)($data['token_name'] ?? ''));
@@ -80,7 +81,7 @@ class TokenController extends BaseApiController
     $this->db->query(
         "INSERT INTO api_tokens (user_id, token, name, scopes, expires_at, created_at)
          VALUES (?, ?, ?, ?, ?, NOW())",
-        [$user->id, $token, $name, $scopes, $expiresAt]
+        [$user->id, $hashedToken, $name, $scopes, $expiresAt]
     );
 
     // موفقیت: ریست شمارنده rate limit
@@ -107,10 +108,15 @@ class TokenController extends BaseApiController
             $this->error('توکن یافت نشد', 400);
         }
 
-        $this->db->query(
+        $hashedToken = hash('sha256', $token);
+        $affected = $this->db->execute(
             "UPDATE api_tokens SET revoked = 1, revoked_at = NOW() WHERE token = ?",
-            [$token]
+            [$hashedToken]
         );
+
+        if ($affected === 0) {
+            $this->error('توکن یافت نشد یا قبلاً باطل شده', 404);
+        }
 
         $this->success(null, 'توکن با موفقیت باطل شد');
     }
