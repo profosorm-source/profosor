@@ -122,7 +122,7 @@ class WithdrawalController extends BaseUserController
         $payload = [
             'amount' => $this->request->input('amount'),
             'currency' => $this->request->input('currency') ?? 'irt',
-            'card_id' => $this->request->input('card_id'),
+            'bank_card_id' => $this->request->input('bank_card_id'),
             'request_id' => $this->request->header('X-Request-ID') ?? bin2hex(random_bytes(8)),
             'ip' => get_client_ip(),
             'user_agent' => get_user_agent(),

@@ -118,7 +118,7 @@ class SocialTaskController extends BaseAdminController
         return;
     }
 
-    $result = $this->service->adminRejectAd(admin_id(), $id, htmlspecialchars($reason, ENT_QUOTES, 'UTF-8'));
+    $result = $this->service->adminRejectAd(admin_id(), $id, e($reason, ENT_QUOTES, 'UTF-8'));
 
     if (!empty($result['success'])) {
         $this->auditTrail->record('social_ad.rejected', admin_id(), [

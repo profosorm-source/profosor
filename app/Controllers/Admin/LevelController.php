@@ -105,17 +105,17 @@ class LevelController extends BaseAdminController
         $levelModel = $this->userLevelModel;
 
         $levelModel->update($id, [
-            'name' => $data->name,
+            'name' => $data['name'],
             'icon' => $this->request->post('icon') ?? 'workspace_premium',
             'color' => $this->request->post('color') ?? '#c0c0c0',
-            'min_active_days' => (int) $data->min_active_days,
-            'min_completed_tasks' => (int) $data->min_completed_tasks,
-            'min_total_earning' => (float) $data->min_total_earning,
+            'min_active_days' => (int) $data['min_active_days'],
+            'min_completed_tasks' => (int) $data['min_completed_tasks'],
+            'min_total_earning' => (float) $data['min_total_earning'],
             'min_total_earning_usdt' => (float) ($this->request->post('min_total_earning_usdt') ?? 0),
-            'purchase_price_irt' => (float) $data->purchase_price_irt,
+            'purchase_price_irt' => (float) $data['purchase_price_irt'],
             'purchase_price_usdt' => (float) ($this->request->post('purchase_price_usdt') ?? 0),
             'purchase_duration_days' => (int) ($this->request->post('purchase_duration_days') ?? 30),
-            'earning_bonus_percent' => (float) $data->earning_bonus_percent,
+            'earning_bonus_percent' => (float) $data['earning_bonus_percent'],
             'referral_bonus_percent' => (float) ($this->request->post('referral_bonus_percent') ?? 0),
             'daily_task_limit_bonus' => (int) ($this->request->post('daily_task_limit_bonus') ?? 0),
             'withdrawal_limit_bonus' => (float) ($this->request->post('withdrawal_limit_bonus') ?? 0),
@@ -124,9 +124,9 @@ class LevelController extends BaseAdminController
             'is_active' => $this->request->post('is_active') ? 1 : 0,
         ]);
 
-        $this->logger->activity('levels.update', 'ویرایش سطح', user_id(), ['level_id' => $id, 'name' => $data->name]);
+        $this->logger->activity('levels.update', 'ویرایش سطح', user_id(), ['level_id' => $id, 'name' => $data['name']]);
 
-        $this->session->setFlash('success', 'سطح «' . e($data->name) . '» بروزرسانی شد.');
+        $this->session->setFlash('success', 'سطح «' . e($data['name']) . '» بروزرسانی شد.');
         return redirect(url('/admin/levels'));
     }
 
@@ -244,7 +244,7 @@ class LevelController extends BaseAdminController
         $levelModel = $this->userLevelModel;
 
         // slug را sanitize کنیم
-        $slug = preg_replace('/[^a-z0-9_-]/', '', strtolower($data->slug));
+        $slug = preg_replace('/[^a-z0-9_-]/', '', strtolower($data['slug']));
         if (empty($slug)) {
             $this->session->setFlash('error', 'slug نامعتبر است. فقط حروف انگلیسی کوچک، عدد، خط تیره و زیرخط مجاز است.');
             $this->session->setFlash('old', $this->request->all());
@@ -261,19 +261,19 @@ class LevelController extends BaseAdminController
         $sortOrder = (int) ($this->request->post('sort_order') ?: ($levelModel->getMaxSortOrder() + 10));
 
         $level = $levelModel->create([
-            'name'                    => $data->name,
+            'name'                    => $data['name'],
             'slug'                    => $slug,
             'icon'                    => $this->request->post('icon') ?? 'workspace_premium',
             'color'                   => $this->request->post('color') ?? '#c0c0c0',
             'sort_order'              => $sortOrder,
-            'min_active_days'         => (int) $data->min_active_days,
-            'min_completed_tasks'     => (int) $data->min_completed_tasks,
-            'min_total_earning'       => (float) $data->min_total_earning,
+            'min_active_days'         => (int) $data['min_active_days'],
+            'min_completed_tasks'     => (int) $data['min_completed_tasks'],
+            'min_total_earning'       => (float) $data['min_total_earning'],
             'min_total_earning_usdt'  => (float) ($this->request->post('min_total_earning_usdt') ?? 0),
-            'purchase_price_irt'      => (float) $data->purchase_price_irt,
+            'purchase_price_irt'      => (float) $data['purchase_price_irt'],
             'purchase_price_usdt'     => (float) ($this->request->post('purchase_price_usdt') ?? 0),
             'purchase_duration_days'  => (int) ($this->request->post('purchase_duration_days') ?? 30),
-            'earning_bonus_percent'   => (float) $data->earning_bonus_percent,
+            'earning_bonus_percent'   => (float) $data['earning_bonus_percent'],
             'referral_bonus_percent'  => (float) ($this->request->post('referral_bonus_percent') ?? 0),
             'daily_task_limit_bonus'  => (int) ($this->request->post('daily_task_limit_bonus') ?? 0),
             'withdrawal_limit_bonus'  => (float) ($this->request->post('withdrawal_limit_bonus') ?? 0),
@@ -288,9 +288,9 @@ class LevelController extends BaseAdminController
             return redirect(url('/admin/levels/create'));
         }
 
-        $this->logger->activity('levels.create', 'ایجاد سطح جدید', user_id(), ['level_id' => $level->id, 'name' => $data->name, 'slug' => $slug]);
+        $this->logger->activity('levels.create', 'ایجاد سطح جدید', user_id(), ['level_id' => $level->id, 'name' => $data['name'], 'slug' => $slug]);
 
-        $this->session->setFlash('success', 'سطح «' . e($data->name) . '» با موفقیت ایجاد شد.');
+        $this->session->setFlash('success', 'سطح «' . e($data['name']) . '» با موفقیت ایجاد شد.');
         return redirect(url('/admin/levels'));
     }
 

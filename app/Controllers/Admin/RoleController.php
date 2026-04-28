@@ -91,16 +91,16 @@ class RoleController extends BaseAdminController
         $roleModel = $this->roleModel;
         
         // بررسی تکراری نبودن slug
-        if ($roleModel->slugExists($data->slug)) {
+        if ($roleModel->slugExists($data['slug'])) {
             $this->session->setFlash('error', 'این شناسه (slug) قبلاً استفاده شده است.');
             $this->session->setFlash('old', $this->request->all());
             return redirect(url('/admin/roles/create'));
         }
-        
+
         $role = $roleModel->create([
-            'name'        => $data->name,
-            'slug'        => $data->slug,
-            'description' => $data->description ?? null,
+            'name'        => $data['name'],
+            'slug'        => $data['slug'],
+            'description' => $data['description'] ?? null,
             'is_system'   => 0,
             'is_active'   => 1,
         ]);
@@ -197,8 +197,8 @@ class RoleController extends BaseAdminController
         $data = $validator->data();
         
         $updateData = [
-            'name'        => $data->name,
-            'description' => $data->description ?? null,
+            'name'        => $data['name'],
+            'description' => $data['description'] ?? null,
         ];
         
         // فقط غیر سیستمی‌ها قابل غیرفعال‌سازی
@@ -217,10 +217,10 @@ class RoleController extends BaseAdminController
         
         $this->logger->activity('roles.update', 'ویرایش نقش', user_id(), [
             'role_id'   => $id,
-            'role_name' => $data->name,
+            'role_name' => $data['name'],
         ]);
-        
-        $this->session->setFlash('success', 'نقش «' . e($data->name) . '» با موفقیت بروزرسانی شد.');
+
+        $this->session->setFlash('success', 'نقش «' . e($data['name']) . '» با موفقیت بروزرسانی شد.');
         return redirect(url('/admin/roles'));
     }
     

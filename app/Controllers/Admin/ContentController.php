@@ -122,7 +122,7 @@ class ContentController extends BaseAdminController
         }
 
         $data = $validator->data();
-        $result = $this->contentService->rejectSubmission($id, user_id(), $data->reason);
+        $result = $this->contentService->rejectSubmission($id, user_id(), $data['reason']);
 
         return $this->response->json($result, $result['success'] ? 200 : 422);
     }
@@ -152,8 +152,8 @@ class ContentController extends BaseAdminController
         $result = $this->contentService->publishSubmission(
             $id, 
             user_id(), 
-            $data->published_url ?? '', 
-            $data->channel_name ?? ''
+            $data['published_url'] ?? '', 
+            $data['channel_name'] ?? ''
         );
 
         return $this->response->json($result, $result['success'] ? 200 : 422);
@@ -221,7 +221,7 @@ class ContentController extends BaseAdminController
             $ids,
             [
                 'status' => 'rejected',
-                'rejection_reason' => $data->reason,
+                'rejection_reason' => $data['reason'],
                 'rejected_at' => date('Y-m-d H:i:s'),
                 'rejected_by' => user_id()
             ]

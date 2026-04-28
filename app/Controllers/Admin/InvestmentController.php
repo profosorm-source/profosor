@@ -205,7 +205,7 @@ class InvestmentController extends BaseAdminController
      */
     public function applyProfit()
     {
-                $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 
         $validator = new Validator($input, [
             'trading_record_id' => 'required|numeric',
@@ -222,9 +222,9 @@ class InvestmentController extends BaseAdminController
         $data = $validator->data();
         $result = $this->investmentService->applyWeeklyProfitLoss(
             user_id(),
-            (int)$data->trading_record_id,
-            (float)$data->profit_loss_percent,
-            $data->period
+            (int)$data['trading_record_id'],
+            (float)$data['profit_loss_percent'],
+            $data['period']
         );
 
         return $this->response->json($result, $result['success'] ? 200 : 422);
@@ -285,7 +285,7 @@ class InvestmentController extends BaseAdminController
         }
 
         $data = $validator->data();
-        $result = $this->investmentService->rejectWithdrawal($id, user_id(), $data->reason);
+        $result = $this->investmentService->rejectWithdrawal($id, user_id(), $data['reason']);
 
         return $this->response->json($result, $result['success'] ? 200 : 422);
     }

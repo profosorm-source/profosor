@@ -3,19 +3,22 @@ namespace App\Controllers\User;
 use App\Services\AdTaskService;
 use App\Services\TaskExecutionService;
 use App\Models\Advertisement;
+use App\Services\AdSystemManager;
 
 class AdtubeController extends BaseUserController
 {
     private AdTaskService $adTaskService;
     private TaskExecutionService $execService;
     private Advertisement $adModel;
+    private AdSystemManager $adManager;
 
-    public function __construct(AdTaskService $ads, TaskExecutionService $exec, Advertisement $ad)
+    public function __construct(AdTaskService $ads, TaskExecutionService $exec, Advertisement $ad, AdSystemManager $adManager)
     {
         parent::__construct();
         $this->adTaskService = $ads;
         $this->execService   = $exec;
         $this->adModel       = $ad;
+        $this->adManager     = $adManager;
     }
 
     public function index(): void {

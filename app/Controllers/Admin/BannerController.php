@@ -5,18 +5,21 @@ namespace App\Controllers\Admin;
 use App\Models\Banner;
 use App\Models\BannerPlacement;
 use App\Controllers\Admin\BaseAdminController;
+use App\Services\UploadService;
 use Core\Database;
 
 class BannerController extends BaseAdminController
 {
     private Banner $banner;
     private BannerPlacement $placement;
+    private UploadService $uploadService;
 
-    public function __construct(Banner $banner, BannerPlacement $placement)
+    public function __construct(Banner $banner, BannerPlacement $placement, UploadService $uploadService)
     {
         parent::__construct();
         $this->banner = $banner;
         $this->placement = $placement;
+        $this->uploadService = $uploadService;
     }
 
     public function index()
@@ -57,7 +60,17 @@ class BannerController extends BaseAdminController
             return redirect('/admin/banners/create');
         }
 
-        $imagePath = $this->uploadImage($_FILES['image'] ?? null);
+        // استفاده از UploadService (Sprint 6)
+        $imagePath = null;
+        if (!empty($_FILES['image']['name'])) {
+            $result = $this->uploadService->upload($_FILES['image'], 'banners', ['jpg', 'png', 'webp', 'gif'], 5 * 1024 * 1024);
+            if ($result['success']) {
+                $imagePath = $result['path'];
+            } else {
+                $_SESSION['error'] = 'خرابی در آپلود تصویر: ' . $result['message'];
+                return redirect('/admin/banners/create');
+            }
+        }
 
         $data = [
             'title' => $title,
@@ -99,7 +112,17 @@ class BannerController extends BaseAdminController
     {
         $id = (int)($_POST['id'] ?? 0);
 
-        $imagePath = $this->uploadImage($_FILES['image'] ?? null);
+        // استفاده از UploadService (Sprint 6)
+        $imagePath = null;
+        if (!empty($_FILES['image']['name'])) {
+            $result = $this->uploadService->upload($_FILES['image'], 'banners', ['jpg', 'png', 'webp', 'gif'], 5 * 1024 * 1024);
+            if ($result['success']) {
+                $imagePath = $result['path'];
+            } else {
+                $_SESSION['error'] = 'خرابی در آپلود تصویر: ' . $result['message'];
+                return redirect('/admin/banners/edit?id=' . $id);
+            }
+        }
 
         $data = [
             'title' => $_POST['title'] ?? '',
@@ -155,49 +178,4 @@ class BannerController extends BaseAdminController
         $placements = $this->placement->allWithBannerCount();
         return view('admin.banners.stats', compact('stats', 'placements'));
     }
-
-    private function uploadImage($file): ?string
-{
-    if (!$file || !is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        return null;
-    }
-
-    $tmpName = (string)($file['tmp_name'] ?? '');
-    if ($tmpName === '' || !is_uploaded_file($tmpName)) {
-        return null;
-    }
-
-    $size = (int)($file['size'] ?? 0);
-    $maxSize = 5 * 1024 * 1024; // 5MB
-    if ($size <= 0 || $size > $maxSize) {
-        return null;
-    }
-
-    $ext = strtolower(pathinfo((string)($file['name'] ?? ''), PATHINFO_EXTENSION));
-    $allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-    if (!in_array($ext, $allowedExt, true)) {
-        return null;
-    }
-
-    $finfo = new \finfo(FILEINFO_MIME_TYPE);
-    $mime = (string)$finfo->file($tmpName);
-    $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!in_array($mime, $allowedMime, true)) {
-        return null;
-    }
-
-    $uploadDir = dirname(__DIR__, 3) . '/public/uploads/banners/';
-    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
-        return null;
-    }
-
-    $filename = bin2hex(random_bytes(16)) . '.' . $ext;
-    $dest = $uploadDir . $filename;
-
-    if (move_uploaded_file($tmpName, $dest)) {
-        return '/uploads/banners/' . $filename;
-    }
-
-    return null;
-}
 }

@@ -7,6 +7,7 @@ use App\Models\SeoExecution;
 use App\Services\WalletService;
 use App\Services\AdvancedAnalyticsService;
 use App\Services\SeoPayoutService;
+use App\Services\AdSystemManager;
 
 /**
  * SeoAdController — مدیریت آگهی‌های SEO توسط تبلیغ‌دهنده
@@ -18,13 +19,15 @@ class SeoAdController extends BaseUserController
     private WalletService $wallet;
     private AdvancedAnalyticsService $analytics;
     private SeoPayoutService $payoutService;
+    private AdSystemManager $adManager;
 
     public function __construct(
         SeoAd $m,
         SeoExecution $e,
         WalletService $w,
         AdvancedAnalyticsService $a,
-        SeoPayoutService $p
+        SeoPayoutService $p,
+        AdSystemManager $adManager
     ) {
         parent::__construct();
         $this->model = $m;
@@ -32,6 +35,7 @@ class SeoAdController extends BaseUserController
         $this->wallet = $w;
         $this->analytics = $a;
         $this->payoutService = $p;
+        $this->adManager = $adManager;
     }
 
     /** لیست آگهی‌های من */

@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Models\BugReport;
 use App\Models\BugReportComment;
 use App\Services\BugReportService;
+use App\Services\UploadService;
 use App\Controllers\Admin\BaseAdminController;
 
 class BugReportController extends BaseAdminController
@@ -13,11 +14,13 @@ class BugReportController extends BaseAdminController
     private BugReport $bugReportModel;
     private BugReportComment $commentModel;
     private BugReportService $service;
+    private UploadService $uploadService;
 
    public function __construct(
     \App\Models\BugReport $bugReportModel,
     \App\Models\BugReportComment $commentModel,
-    \App\Services\BugReportService $bugReportService
+    \App\Services\BugReportService $bugReportService,
+    UploadService $uploadService
 ) {
     parent::__construct();
 
@@ -25,6 +28,7 @@ class BugReportController extends BaseAdminController
     $this->commentModel = $commentModel;
     $this->bugReportService = $bugReportService;
     $this->service = $bugReportService;
+    $this->uploadService = $uploadService;
 }
 
     /**
@@ -153,21 +157,21 @@ class BugReportController extends BaseAdminController
 
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-                $this->response->json([
-                    'success' => false,
-                    'message' => 'خطا در آپلود فایل ضمیمه',
-                ], 422);
-                return;
+                // استفاده از UploadService (Sprint 6)
+                $uploadResult = $this->uploadService->upload($file, 'bug-report-attachments', ['jpg', 'png', 'jpeg', 'pdf', 'zip'], 10 * 1024 * 1024);
+                
+                if (!$uploadResult['success']) {
+                    $this->response->json([
+                        'success' => false,
+                        'message' => 'خطا در آپلود فایل: ' . $uploadResult['message'],
+                    ], 422);
+                    return;
+                }
+                
+                $attachment = $uploadResult['path'];
             }
-
-            $size = (int)($file['size'] ?? 0);
-            $maxSize = 10 * 1024 * 1024; // 10MB
-            if ($size <= 0 || $size > $maxSize) {
-                $this->response->json([
-                    'success' => false,
-                    'message' => 'حجم فایل ضمیمه نامعتبر است',
-                ], 422);
-                return;
+        }
+    }
             }
 
             $ext = strtolower(pathinfo((string)($file['name'] ?? ''), PATHINFO_EXTENSION));

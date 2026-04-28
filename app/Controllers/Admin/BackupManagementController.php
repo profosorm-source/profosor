@@ -85,9 +85,32 @@ class BackupManagementController
                 return;
             }
 
-            // برای امنیت، فقط ادمین‌های ارشد می‌توانند restore کنند
-            // این قسمت نیاز به verification کاملی دارد
-            flash('بازیابی از پشتیبان فعلاً محدود شده است. لطفاً از طریق بک‌اند انجام دهید.', 'warning');
+            // دریافت اطلاعات پشتیبان
+            $backup = $this->db->fetchOne(
+                "SELECT filename FROM backup_logs WHERE id = ?",
+                [$backupId]
+            );
+
+            if (!$backup) {
+                flash('پشتیبان یافت نشد', 'error');
+                redirect('/admin/backups');
+                return;
+            }
+
+            // اجرای بازیابی
+            $result = $this->backupService->restoreBackup($backup->filename);
+
+            if ($result['success']) {
+                $this->logger->info('admin.backup.restore.success', ['backup_id' => $backupId]);
+                flash('بازیابی پشتیبان با موفقیت انجام شد', 'success');
+            } else {
+                $this->logger->error('admin.backup.restore.failed', [
+                    'backup_id' => $backupId,
+                    'error' => $result['error']
+                ]);
+                flash('خطا در بازیابی: ' . $result['error'], 'error');
+            }
+
             redirect('/admin/backups');
 
         } catch (\Exception $e) {

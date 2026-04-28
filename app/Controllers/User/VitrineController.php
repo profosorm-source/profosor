@@ -197,12 +197,12 @@ class VitrineController extends BaseUserController
         // ✅ XSS prevention - escape HTML
         $result = $this->service->createListing($userId, [
             'listing_type'   => in_array($data['listing_type'] ?? 'sell', ['sell', 'buy'], true) ? $data['listing_type'] : 'sell',
-            'category'       => htmlspecialchars($data['category'] ?? '', ENT_QUOTES, 'UTF-8'),
-            'platform'       => htmlspecialchars($data['platform'] ?? '', ENT_QUOTES, 'UTF-8'),
-            'title'          => htmlspecialchars(trim($data['title']), ENT_QUOTES, 'UTF-8'),
-            'description'    => htmlspecialchars(trim($data['description']), ENT_QUOTES, 'UTF-8'),
-            'specs'          => !empty($data['specs']) ? htmlspecialchars(trim($data['specs']), ENT_QUOTES, 'UTF-8') : null,
-            'username'       => !empty($data['username']) ? htmlspecialchars(trim($data['username']), ENT_QUOTES, 'UTF-8') : null,
+            'category'       => e($data['category'] ?? '', ENT_QUOTES, 'UTF-8'),
+            'platform'       => e($data['platform'] ?? '', ENT_QUOTES, 'UTF-8'),
+            'title'          => e(trim($data['title']), ENT_QUOTES, 'UTF-8'),
+            'description'    => e(trim($data['description']), ENT_QUOTES, 'UTF-8'),
+            'specs'          => !empty($data['specs']) ? e(trim($data['specs']), ENT_QUOTES, 'UTF-8') : null,
+            'username'       => !empty($data['username']) ? e(trim($data['username']), ENT_QUOTES, 'UTF-8') : null,
             'member_count'   => max(0, (int)($data['member_count'] ?? 0)),
             'creation_date'  => !empty($data['creation_date']) ? $data['creation_date'] : null,
             'price_usdt'     => $price,

@@ -3,41 +3,27 @@
 namespace App\Controllers\User;
 
 use App\Models\ReferralCommission;
-use App\Services\ReferralCommissionService;
-use App\Services\ReferralTierService;
-use App\Services\ReferralMilestoneService;
-use App\Services\ReferralAnalyticsService;
-use App\Services\ReferralQualityScoreService;
-use App\Services\ReferralMultiTierService;
+use App\Services\ReferralService;
 use App\Controllers\User\BaseUserController;
 
+/**
+ * ReferralController - Consolidated Referral System
+ * 
+ * استفاده از نئی ReferralService (Sprint 4 - Consolidation)
+ * تمام referral functionality اب ایک service میں ہے
+ */
 class ReferralController extends BaseUserController
 {
-    private ReferralCommission          $referralCommissionModel;
-    private ReferralCommissionService   $referralCommissionService;
-    private ReferralTierService         $tierService;
-    private ReferralMilestoneService    $milestoneService;
-    private ReferralAnalyticsService    $analyticsService;
-    private ReferralQualityScoreService $qualityScoreService;
-    private ReferralMultiTierService    $multiTierService;
+    private ReferralCommission $referralCommissionModel;
+    private ReferralService    $referralService;
 
     public function __construct(
-        ReferralCommission        $referralCommissionModel,
-        ReferralCommissionService $referralCommissionService,
-        ReferralTierService       $tierService,
-        ReferralMilestoneService  $milestoneService,
-        ReferralAnalyticsService  $analyticsService,
-        ReferralQualityScoreService $qualityScoreService,
-        ReferralMultiTierService  $multiTierService
+        ReferralCommission $referralCommissionModel,
+        ReferralService    $referralService
     ) {
         parent::__construct();
-        $this->referralCommissionModel   = $referralCommissionModel;
-        $this->referralCommissionService = $referralCommissionService;
-        $this->tierService = $tierService;
-        $this->milestoneService = $milestoneService;
-        $this->analyticsService = $analyticsService;
-        $this->qualityScoreService = $qualityScoreService;
-        $this->multiTierService = $multiTierService;
+        $this->referralCommissionModel = $referralCommissionModel;
+        $this->referralService = $referralService;
     }
 
     /**
@@ -48,7 +34,7 @@ class ReferralController extends BaseUserController
         $userId = $this->userId();
         $user   = $this->userModel->find($userId);
 
-        // آمار کلی کمیسیون‌ها
+        // آمار کلی کمیسیون‌ها - نئی ReferralService سے
         $stats = $this->referralCommissionModel->getReferrerStats($userId);
 
         // تعداد و لیست زیرمجموعه‌ها
@@ -60,7 +46,7 @@ class ReferralController extends BaseUserController
 
         // برچسب‌گذاری کمیسیون‌ها
         foreach ($recentCommissions as $c) {
-            $c->source_label = $this->referralCommissionService->getSourceLabel($c->source_type);
+            $c->source_label = $this->referralService->getSourceLabel($c->source_type);
             $c->status_label = self::statusLabel($c->status);
             $c->status_class = self::statusClass($c->status);
         }
@@ -83,7 +69,7 @@ class ReferralController extends BaseUserController
             'recentCommissions' => $recentCommissions,
             'referralLink'      => $referralLink,
             'percents'          => $percents,
-            'sourceTypes'       => ReferralCommissionService::sourceTypes(),
+            'sourceTypes'       => $this->referralService->getSourceTypes(),
         ]);
     }
 
@@ -110,7 +96,7 @@ class ReferralController extends BaseUserController
         foreach ($commissions as $c) {
             $c->created_at_jalali = to_jalali($c->created_at ?? '');
             $c->paid_at_jalali    = $c->paid_at ? to_jalali($c->paid_at) : null;
-            $c->source_label      = $this->referralCommissionService->getSourceLabel($c->source_type);
+            $c->source_label      = $this->referralService->getSourceLabel($c->source_type);
             $c->status_label      = self::statusLabel($c->status);
             $c->status_class      = self::statusClass($c->status);
         }
@@ -176,7 +162,7 @@ class ReferralController extends BaseUserController
     // ── New Features ───────────────────────────────────────────
 
     /**
-     * داشبورد پیشرفته با Analytics
+     * داشبورد پیشرفته با Analytics - نئی ReferralService
      */
     public function dashboard()
     {
@@ -187,25 +173,24 @@ class ReferralController extends BaseUserController
         $stats = $this->referralCommissionModel->getReferrerStats($userId);
 
         // Tier فعلی و پیشرفت
-        $currentTier = $this->tierService->getCurrentTier($userId);
-        $nextTierProgress = $this->tierService->getNextTierProgress($userId);
+        $currentTier = $this->referralService->getCurrentTier($userId);
+        $nextTierProgress = $this->referralService->checkAndUpgrade($userId);
 
         // Quality Score
-        $qualityScore = $this->qualityScoreService->getScore($userId);
-        $qualityInterpretation = $this->qualityScoreService->getScoreInterpretation($qualityScore);
-        $improvementSuggestions = $this->qualityScoreService->getImprovementSuggestions($userId);
+        $qualityScore = $this->referralService->getScore($userId);
+        $improvementSuggestions = $this->referralService->calculateScore($userId);
 
         // Milestones
-        $achievedMilestones = $this->milestoneService->getUserAchievedMilestones($userId);
-        $nextMilestone = $this->milestoneService->getNextMilestone($userId);
+        $achievedMilestones = $this->referralService->getUserAchievedMilestones($userId);
+        $nextMilestone = $this->referralService->checkAndAwardMilestones($userId);
 
         // Analytics
-        $analytics = $this->analyticsService->getReferrerDashboard($userId);
+        $analytics = $this->referralService->getReferralTrend($userId, 30);
 
         // Multi-tier earnings (اگر فعال باشه)
         $multiTierEarnings = null;
         if (setting('referral_multi_tier_enabled', 0)) {
-            $multiTierEarnings = $this->multiTierService->getEarningsByTier($userId);
+            $multiTierEarnings = $this->referralService->processMultiTierCommissions($userId);
         }
 
         return view('user.referral.dashboard', [
@@ -214,7 +199,6 @@ class ReferralController extends BaseUserController
             'current_tier' => $currentTier,
             'next_tier_progress' => $nextTierProgress,
             'quality_score' => $qualityScore,
-            'quality_interpretation' => $qualityInterpretation,
             'improvement_suggestions' => $improvementSuggestions,
             'achieved_milestones' => $achievedMilestones,
             'next_milestone' => $nextMilestone,
@@ -225,14 +209,14 @@ class ReferralController extends BaseUserController
     }
 
     /**
-     * صفحه Analytics
+     * صفحه Analytics - نئی ReferralService
      */
     public function analytics()
     {
         $userId = $this->userId();
 
-        $dashboard = $this->analyticsService->getReferrerDashboard($userId);
-        $comparison = $this->analyticsService->compareWithAverage($userId);
+        $dashboard = $this->referralService->getReferralTrend($userId, 90);
+        $comparison = $this->referralService->getCommissionTrend($userId, 30);
 
         return view('user.referral.analytics', [
             'dashboard' => $dashboard,
@@ -241,23 +225,21 @@ class ReferralController extends BaseUserController
     }
 
     /**
-     * صفحه Milestones
+     * صفحه Milestones - نئی ReferralService
      */
     public function milestones()
     {
         $userId = $this->userId();
 
-        $achieved = $this->milestoneService->getUserAchievedMilestones($userId);
-        $available = $this->milestoneService->getAvailableMilestones($userId);
+        $achieved = $this->referralService->getUserAchievedMilestones($userId);
 
         return view('user.referral.milestones', [
             'achieved' => $achieved,
-            'available' => $available
         ]);
     }
 
     /**
-     * صفحه شبکه (Network) - Multi-tier
+     * صفحه شبکه (Network) - Multi-tier - نئی ReferralService
      */
     public function network()
     {
@@ -267,19 +249,15 @@ class ReferralController extends BaseUserController
             return redirect('/user/referral')->with('error', 'این قابلیت فعال نیست');
         }
 
-        $network = $this->multiTierService->getReferralNetwork($userId, 3);
-        $networkStats = $this->multiTierService->getNetworkStats($userId);
-        $indirectEarnings = $this->multiTierService->getIndirectEarnings($userId);
+        $indirectEarnings = $this->referralService->getIndirectEarnings($userId);
 
         return view('user.referral.network', [
-            'network' => $network,
-            'network_stats' => $networkStats,
             'indirect_earnings' => $indirectEarnings
         ]);
     }
 
     /**
-     * API: دریافت آمار لحظه‌ای
+     * API: دریافت آمار لحظه‌ای - نئی ReferralService
      */
     public function apiStats()
     {
@@ -288,10 +266,9 @@ class ReferralController extends BaseUserController
         $this->response->json([
             'success' => true,
             'data' => [
-                'tier' => $this->tierService->getCurrentTier($userId),
-                'quality_score' => $this->qualityScoreService->getScore($userId),
-                'next_milestone' => $this->milestoneService->getNextMilestone($userId),
-                'conversion_rate' => $this->analyticsService->getConversionRate($userId, 7),
+                'tier' => $this->referralService->getCurrentTier($userId),
+                'quality_score' => $this->referralService->getScore($userId),
+                'conversion_rate' => $this->referralService->getConversionRate($userId, 7),
             ]
         ]);
     }

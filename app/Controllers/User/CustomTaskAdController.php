@@ -8,6 +8,7 @@ use App\Services\CustomTaskDisputeService;
 use App\Validators\CustomTaskValidator;
 use App\Services\AntiFraud\IPQualityService;
 use App\Services\AntiFraud\BrowserFingerprintService;
+use App\Services\AdSystemManager;
 
 class CustomTaskAdController extends BaseUserController
 {
@@ -15,18 +16,21 @@ class CustomTaskAdController extends BaseUserController
     private CustomTaskDisputeService $disputeService;
     private IPQualityService $ipQualityService;
     private BrowserFingerprintService $fingerprintService;
+    private AdSystemManager $adManager;
 
     public function __construct(
         CustomTaskService $service,
         CustomTaskDisputeService $disputeService,
         IPQualityService $ipQualityService,
-        BrowserFingerprintService $fingerprintService
+        BrowserFingerprintService $fingerprintService,
+        AdSystemManager $adManager
     ) {
         parent::__construct();
         $this->service = $service;
         $this->disputeService = $disputeService;
         $this->ipQualityService = $ipQualityService;
         $this->fingerprintService = $fingerprintService;
+        $this->adManager = $adManager;
     }
 
     /**

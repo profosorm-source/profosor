@@ -4,19 +4,22 @@ namespace App\Controllers\User;
 use App\Services\AdTaskService;
 use App\Services\TaskExecutionService;
 use App\Models\Advertisement;
+use App\Services\AdSystemManager;
 
 class AdsocialController extends BaseUserController
 {
     private AdTaskService $adTaskService;
     private TaskExecutionService $execService;
     private Advertisement $adModel;
+    private AdSystemManager $adManager;
 
-    public function __construct(AdTaskService $adTaskService, TaskExecutionService $execService, Advertisement $adModel)
+    public function __construct(AdTaskService $adTaskService, TaskExecutionService $execService, Advertisement $adModel, AdSystemManager $adManager)
     {
         parent::__construct();
         $this->adTaskService = $adTaskService;
         $this->execService   = $execService;
         $this->adModel       = $adModel;
+        $this->adManager     = $adManager;
     }
 
     // کسب درآمد

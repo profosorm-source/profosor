@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 use App\Controllers\BaseController;
 use App\Services\AuditTrail;
 use App\Services\AuthService;
+use App\Services\PolicyService;
 use Core\Logger;
 
 
@@ -16,17 +17,19 @@ class AuthController extends BaseController
 {
     private Logger $logger;
     private AuditTrail $auditTrail;
-	private AuthService $authService;
+    private AuthService $authService;
+    private PolicyService $policyService;
     
     
 
-  public function __construct(AuditTrail $auditTrail, AuthService $authService, Logger $logger)
+  public function __construct(AuditTrail $auditTrail, AuthService $authService, Logger $logger, PolicyService $policyService)
 {
     parent::__construct();
     
-	$this->authService = $authService;
-	$this->auditTrail = $auditTrail;
-	$this->logger = $logger;
+    $this->authService = $authService;
+    $this->auditTrail = $auditTrail;
+    $this->logger = $logger;
+    $this->policyService = $policyService;
     
 }
 
@@ -95,6 +98,17 @@ class AuthController extends BaseController
 
                 $this->authService->logout();
                 $this->session->setFlash('error', 'دسترسی غیرمجاز.');
+                return view('admin/login');
+            }
+
+            // استفاده از PolicyService (Sprint 5) برای authorization
+            if (!$this->policyService->isAdmin($user)) {
+                $this->logger->warning('admin.not_authorized', [
+                    'user_id' => $user->id,
+                    'email' => $email,
+                ]);
+                $this->authService->logout();
+                $this->session->setFlash('error', 'شما اجازه دسترسی به پنل ادمین را ندارید');
                 return view('admin/login');
             }
 

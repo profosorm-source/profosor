@@ -4,6 +4,7 @@ namespace App\Controllers\User;
 
 use App\Models\KYCVerification;
 use App\Services\KYCService;
+use App\Services\UploadService;
 use Core\Validator;
 use App\Services\ApiRateLimiter;
 use App\Controllers\User\BaseUserController;
@@ -12,14 +13,17 @@ class KYCController extends BaseUserController
 {
     private KYCService      $kycService;
     private KYCVerification $kycModel;
+    private UploadService   $uploadService;
 
     public function __construct(
         KYCVerification $kycModel,
-        KYCService      $kycService
+        KYCService      $kycService,
+        UploadService   $uploadService
     ) {
         parent::__construct();
         $this->kycModel   = $kycModel;
         $this->kycService = $kycService;
+        $this->uploadService = $uploadService;
     }
 
     /**
@@ -87,13 +91,28 @@ class KYCController extends BaseUserController
             return redirect('/kyc/upload');
         }
 
+        // استفاده از UploadService (Sprint 6)
+        $uploadResult = $this->uploadService->upload(
+            $_FILES['verification_image'],
+            'kyc-verification',
+            ['jpg', 'png', 'jpeg'],
+            5 * 1024 * 1024
+        );
+
+        if (!$uploadResult['success']) {
+            session()->setFlash('errors', [
+                'verification_image' => [$uploadResult['message']],
+            ]);
+            return redirect('/kyc/upload');
+        }
+
         $result = $this->kycService->submitKYC(
             $userId,
             [
                 'national_code' => trim($data['national_code']),
                 'birth_date'    => $data['birth_date'],
             ],
-            $_FILES['verification_image']
+            $uploadResult['path']  // اب UploadService سے secured path
         );
 
         if ($result['success']) {

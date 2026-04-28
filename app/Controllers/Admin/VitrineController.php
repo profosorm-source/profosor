@@ -148,7 +148,7 @@ class VitrineController extends BaseAdminController
         }
 
         $adminId = (int)admin_id();
-        $result = $this->service->adminRejectListing($id, htmlspecialchars($reason, ENT_QUOTES, 'UTF-8'), $adminId);
+        $result = $this->service->adminRejectListing($id, e($reason, ENT_QUOTES, 'UTF-8'), $adminId);
 
         if (!empty($result['success'])) {
             $this->auditTrail->record('vitrine.admin_rejected', $adminId, [

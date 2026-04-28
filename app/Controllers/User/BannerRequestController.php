@@ -5,17 +5,20 @@ namespace App\Controllers\User;
 use App\Models\Banner;
 use App\Models\BannerPlacement;
 use App\Controllers\User\BaseUserController;
+use App\Services\UploadService;
 
 class BannerRequestController extends BaseUserController
 {
     private Banner $banner;
     private BannerPlacement $placement;
+    private UploadService $uploadService;
 
-    public function __construct(Banner $banner, BannerPlacement $placement)
+    public function __construct(Banner $banner, BannerPlacement $placement, UploadService $uploadService)
     {
         parent::__construct();
         $this->banner = $banner;
         $this->placement = $placement;
+        $this->uploadService = $uploadService;
     }
 
     public function index()
@@ -45,8 +48,15 @@ class BannerRequestController extends BaseUserController
             return redirect('/banner-request/create');
         }
 
-        $imagePath = $this->uploadImage($_FILES['image'] ?? null);
-        if (!$imagePath) {
+        $imagePath = null;
+        if (!empty($_FILES['image']['name'])) {
+            $result = $this->uploadService->upload($_FILES['image'], 'banner-requests', ['jpg', 'png', 'webp', 'gif'], 2 * 1024 * 1024);
+            if (!$result['success']) {
+                $_SESSION['error'] = 'خرابی در آپلود: ' . $result['message'];
+                return redirect('/banner-request/create');
+            }
+            $imagePath = $result['path'];
+        } else {
             $_SESSION['error'] = 'تصویر الزامی است';
             return redirect('/banner-request/create');
         }

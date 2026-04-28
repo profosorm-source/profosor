@@ -5,17 +5,22 @@ namespace App\Controllers\User;
 use App\Models\BugReport;
 use App\Models\BugReportComment;
 use App\Services\BugReportService;
+use App\Services\UploadService;
 use App\Controllers\User\BaseUserController;
 
 class BugReportController extends BaseUserController
 {
     private \App\Services\BugReportService $bugReportService;
+    private UploadService $uploadService;
+
     public function __construct(
-        \App\Services\BugReportService $bugReportService
+        \App\Services\BugReportService $bugReportService,
+        UploadService $uploadService
     )
     {
         parent::__construct();
         $this->bugReportService = $bugReportService;
+        $this->uploadService = $uploadService;
     }
 
     /**
@@ -39,7 +44,17 @@ class BugReportController extends BaseUserController
         ];
 
         if (isset($_FILES['screenshot']) && $_FILES['screenshot']['error'] !== UPLOAD_ERR_NO_FILE) {
-            $data['screenshot'] = $_FILES['screenshot'];
+            // استفاده از UploadService (Sprint 6)
+            $uploadResult = $this->uploadService->upload(
+                $_FILES['screenshot'],
+                'bug-reports',
+                ['jpg', 'png', 'jpeg'],
+                5 * 1024 * 1024
+            );
+
+            if ($uploadResult['success']) {
+                $data['screenshot'] = $uploadResult['path'];
+            }
         }
 
         $service = $this->bugReportService;

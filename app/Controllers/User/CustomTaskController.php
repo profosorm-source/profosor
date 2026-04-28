@@ -142,16 +142,16 @@ class CustomTaskController extends BaseUserController
 
         // ایجاد تسک
         $result = $this->customTaskService->createTask($userId, [
-            'title' => $data->title,
-            'description' => $data->description,
+            'title' => $data['title'],
+            'description' => $data['description'],
             'link' => $this->request->post('link'),
             'task_type' => $this->request->post('task_type') ?? 'custom',
             'proof_type' => $this->request->post('proof_type') ?? 'screenshot',
             'proof_description' => $this->request->post('proof_description'),
             'sample_image' => $sampleImage,
-            'price_per_task' => (float) $data->price_per_task,
+            'price_per_task' => (float) $data['price_per_task'],
             'currency' => $currencyMode,
-            'total_quantity' => (int) $data->total_quantity,
+            'total_quantity' => (int) $data['total_quantity'],
             'deadline_hours' => (int) ($this->request->post('deadline_hours') ?? 24),
             'device_restriction' => $this->request->post('device_restriction') ?? 'all',
             'daily_limit_per_user' => (int) ($this->request->post('daily_limit_per_user') ?? 1),

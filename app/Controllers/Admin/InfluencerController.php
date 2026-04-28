@@ -181,7 +181,7 @@ class InfluencerController extends BaseAdminController
                     $result = $this->verificationService->rejectVerification(
                         $verification->id,
                         $adminId,
-                        htmlspecialchars($reason, ENT_QUOTES, 'UTF-8')
+                        e($reason, ENT_QUOTES, 'UTF-8')
                     );
                     $this->response->json($result, $result['ok'] ? 200 : 422);
                     return;
@@ -189,7 +189,7 @@ class InfluencerController extends BaseAdminController
 
                 $this->profileModel->update($profileId, [
                     'status'           => 'rejected',
-                    'rejection_reason' => htmlspecialchars($reason, ENT_QUOTES, 'UTF-8'),
+                    'rejection_reason' => e($reason, ENT_QUOTES, 'UTF-8'),
                 ]);
                 $this->auditTrail->record(
                     'influencer.profile.rejected',
@@ -210,7 +210,7 @@ class InfluencerController extends BaseAdminController
                     'status'           => 'suspended',
                     'is_active'        => 0,
                     'suspended_at'     => \date('Y-m-d H:i:s'),
-                    'suspended_reason' => htmlspecialchars($reason, ENT_QUOTES, 'UTF-8'),
+                    'suspended_reason' => e($reason, ENT_QUOTES, 'UTF-8'),
                 ]);
                 $this->auditTrail->record(
                     'influencer.profile.suspended',
@@ -335,7 +335,7 @@ class InfluencerController extends BaseAdminController
             $disputeId,
             $this->userId(),
             $verdict,
-            htmlspecialchars($note, ENT_QUOTES, 'UTF-8'),
+            e($note, ENT_QUOTES, 'UTF-8'),
             $refundPercent
         );
 
@@ -417,7 +417,7 @@ class InfluencerController extends BaseAdminController
         $result = $this->verificationService->rejectVerification(
             $verificationId,
             $this->userId(),
-            htmlspecialchars($reason, ENT_QUOTES, 'UTF-8')
+            e($reason, ENT_QUOTES, 'UTF-8')
         );
 
         $this->response->json($result, $result['ok'] ? 200 : 422);

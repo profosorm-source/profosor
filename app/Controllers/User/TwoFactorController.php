@@ -40,20 +40,20 @@ class TwoFactorController extends BaseUserController
 
         $data = [
             'title'      => 'احراز هویت دو مرحله‌ای',
-            'is_enabled' => ($user['two_factor_enabled'] ?? 0) == 1,
+            'is_enabled' => ($user->two_factor_enabled ?? 0) == 1,
         ];
 
         if (!$data['is_enabled']) {
-            if (empty($user['two_factor_secret'])) {
+            if (empty($user->two_factor_secret)) {
                 $secret = $this->twoFactorService->generateSecret();
-                $this->userModel->update($user['id'], ['two_factor_secret' => $secret]);
-                $user['two_factor_secret'] = $secret;
+                $this->userModel->update($user->id, ['two_factor_secret' => $secret]);
+                $user->two_factor_secret = $secret;
             }
 
-            $data['secret']       = $user['two_factor_secret'];
+            $data['secret']       = $user->two_factor_secret;
             $data['qr_code_url']  = $this->twoFactorService->getQRCodeUrl(
-                $user['username'] ?? $user['email'],
-                $user['two_factor_secret']
+                $user->username ?? $user->email,
+                $user->two_factor_secret
             );
         }
 
@@ -148,10 +148,10 @@ $this->session->regenerate();
             return;
         }
 
-        $result = $this->twoFactorService->enable($user['id'], $code);
+        $result = $this->twoFactorService->enable($user->id, $code);
 
         if ($result['success']) {
-           $this->logger->activity('2fa.enabled', 'فعال‌سازی احراز هویت دو مرحله‌ای', $user['id'], [
+           $this->logger->activity('2fa.enabled', 'فعال‌سازی احراز هویت دو مرحله‌ای', $user->id, [
     'channel' => 'auth',
 ]);
             }
@@ -176,7 +176,7 @@ $this->session->regenerate();
             return;
         }
 
-        $result = $this->twoFactorService->disable($user['id'], $password);
+        $result = $this->twoFactorService->disable($user->id, $password);
 
         if ($result['success']) {
             $this->logger->activity('2fa.disabled', 'غیرفعال‌سازی احراز هویت دو مرحله‌ای', $user['id'], [
