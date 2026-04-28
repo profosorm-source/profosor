@@ -19,7 +19,7 @@ ob_start();
 
 // Helper function برای escape کردن امن
 function safe_escape($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    return e((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
 // Helper function برای badge status

@@ -52,14 +52,14 @@
                                         <div class="flex-1 min-w-0">
                                             <div class="flex justify-between items-start">
                                                 <h3 class="font-medium text-gray-900">
-                                                    <?php echo htmlspecialchars($conv['user_name']); ?>
+                                                    <?php echo e($conv['user_name']); ?>
                                                 </h3>
                                                 <span class="text-sm text-gray-500">
                                                     <?php echo format_time($conv['last_message_at']); ?>
                                                 </span>
                                             </div>
                                             <p class="text-sm text-gray-600 truncate mt-1">
-                                                <?php echo htmlspecialchars(substr($conv['last_message'], 0, 100)); ?>
+                                                <?php echo e(substr($conv['last_message'], 0, 100)); ?>
                                             </p>
                                         </div>
                                         <?php if ($conv['unread_count'] > 0): ?>

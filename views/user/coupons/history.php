@@ -34,7 +34,7 @@ ob_start();
                                     <?php foreach ($history as $item): ?>
                                         <tr>
                                             <td>
-                                                <span class="badge bg-gradient-info"><?= e(htmlspecialchars($item->code)) ?></span>
+                                                <span class="badge bg-gradient-info"><?= e(e($item->code)) ?></span>
                                             </td>
                                             <td>
                                                 <?php if ($item->type === 'percent'): ?>

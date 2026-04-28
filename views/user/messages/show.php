@@ -14,7 +14,7 @@
                         <?php echo substr($other_user['full_name'], 0, 1); ?>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900"><?php echo htmlspecialchars($other_user['full_name']); ?></h1>
+                        <h1 class="text-2xl font-bold text-gray-900"><?php echo e($other_user['full_name']); ?></h1>
                         <p class="text-gray-600 text-sm" id="typing-indicator"></p>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                                 <!-- Sent Message -->
                                 <div class="flex justify-end">
                                     <div class="bg-blue-500 text-white rounded-lg px-4 py-2 max-w-xs">
-                                        <p class="text-sm"><?php echo htmlspecialchars($msg['message']); ?></p>
+                                        <p class="text-sm"><?php echo e($msg['message']); ?></p>
                                         <div class="text-xs mt-1 opacity-70 flex justify-between items-center gap-2">
                                             <span><?php echo format_time($msg['created_at']); ?></span>
                                             <?php if ($msg['read_at']): ?>
@@ -64,7 +64,7 @@
                                 <!-- Received Message -->
                                 <div class="flex justify-start">
                                     <div class="bg-gray-200 text-gray-900 rounded-lg px-4 py-2 max-w-xs">
-                                        <p class="text-sm"><?php echo htmlspecialchars($msg['message']); ?></p>
+                                        <p class="text-sm"><?php echo e($msg['message']); ?></p>
                                         <div class="text-xs mt-1 opacity-70">
                                             <?php echo format_time($msg['created_at']); ?>
                                         </div>

@@ -13,7 +13,7 @@ ob_start();
 
 // Helper functions
 function safe_escape($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    return e((string)$value, ENT_QUOTES, 'UTF-8');
 }
 ?>
 
