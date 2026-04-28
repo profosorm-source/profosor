@@ -4,11 +4,11 @@
 /** @var array $eventTypes */
 $title = 'Audit Trail - ردپای حسابرسی';
 // مقادیر filter — از Controller inject می‌شوند؛ fallback امن از superglobal
-$filterSearch  = $filterSearch  ?? htmlspecialchars($_GET['search']  ?? '', ENT_QUOTES, 'UTF-8');
-$filterEvent   = $filterEvent   ?? htmlspecialchars($_GET['event']   ?? '', ENT_QUOTES, 'UTF-8');
-$filterUserId  = $filterUserId  ?? htmlspecialchars($_GET['user_id'] ?? '', ENT_QUOTES, 'UTF-8');
-$filterFrom    = $filterFrom    ?? htmlspecialchars($_GET['from']    ?? '', ENT_QUOTES, 'UTF-8');
-$filterTo      = $filterTo      ?? htmlspecialchars($_GET['to']      ?? '', ENT_QUOTES, 'UTF-8');
+$filterSearch  = $filterSearch  ?? e($_GET['search']  ?? '', ENT_QUOTES, 'UTF-8');
+$filterEvent   = $filterEvent   ?? e($_GET['event']   ?? '', ENT_QUOTES, 'UTF-8');
+$filterUserId  = $filterUserId  ?? e($_GET['user_id'] ?? '', ENT_QUOTES, 'UTF-8');
+$filterFrom    = $filterFrom    ?? e($_GET['from']    ?? '', ENT_QUOTES, 'UTF-8');
+$filterTo      = $filterTo      ?? e($_GET['to']      ?? '', ENT_QUOTES, 'UTF-8');
 include BASE_PATH . '/views/layouts/admin.php';
 ?>
 
@@ -134,7 +134,7 @@ include BASE_PATH . '/views/layouts/admin.php';
                                         data-bs-toggle="popover"
                                         data-bs-trigger="click"
                                         data-bs-html="true"
-                                        data-bs-content="<pre class='mb-0 small' style='max-width:300px'><?= htmlspecialchars(json_encode($ctx, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT)) ?></pre>">
+                                        data-bs-content="<pre class='mb-0 small' style='max-width:300px'><?= e(json_encode($ctx, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT)) ?></pre>">
                                     <span class="material-icons" style="font-size:14px">info</span>
                                 </button>
                                 <?php if (isset($ctx['changes'])): ?>

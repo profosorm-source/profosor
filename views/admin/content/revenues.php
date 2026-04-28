@@ -53,11 +53,11 @@ ob_start();
                         <td><?= $r->id ?></td>
                         <td>
                             <a href="<?= url('/admin/content/' . $r->submission_id) ?>">
-                                <?= htmlspecialchars(mb_substr($r->title ?? '', 0, 30)) ?>
+                                <?= e(mb_substr($r->title ?? '', 0, 30)) ?>
                             </a>
                         </td>
-                        <td><?= htmlspecialchars($r->user_name ?? '') ?></td>
-                        <td><?= htmlspecialchars($r->period) ?></td>
+                        <td><?= e($r->user_name ?? '') ?></td>
+                        <td><?= e($r->period) ?></td>
                         <td><?= number_format($r->total_revenue) ?></td>
                         <td><strong><?= number_format($r->net_user_amount) ?></strong></td>
                         <td>

@@ -176,8 +176,8 @@
                                                 <?php echo substr($appeal['username'], 0, 1); ?>
                                             </div>
                                             <div>
-                                                <div class="user-name"><?php echo htmlspecialchars($appeal['username']); ?></div>
-                                                <div class="user-email"><?php echo htmlspecialchars($appeal['email']); ?></div>
+                                                <div class="user-name"><?php echo e($appeal['username']); ?></div>
+                                                <div class="user-email"><?php echo e($appeal['email']); ?></div>
                                             </div>
                                         </div>
                                     </td>
@@ -197,7 +197,7 @@
                                             ?>
                                         </span>
                                     </td>
-                                    <td><?php echo htmlspecialchars(substr($appeal['title'], 0, 50)); ?></td>
+                                    <td><?php echo e(substr($appeal['title'], 0, 50)); ?></td>
                                     <td>
                                         <?php
                                         $statusClasses = [

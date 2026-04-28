@@ -15,7 +15,7 @@ include __DIR__ . '/../../partials/admin/header.php';
 
             <div class="form-group">
                 <label>عنوان *</label>
-                <input type="text" name="title" value="<?= htmlspecialchars($banner->title) ?>" required class="form-control">
+                <input type="text" name="title" value="<?= e($banner->title) ?>" required class="form-control">
             </div>
 
             <div class="form-row">
@@ -42,7 +42,7 @@ include __DIR__ . '/../../partials/admin/header.php';
                 <select name="placement" required class="form-control">
                     <?php foreach ($placements as $p): ?>
                         <option value="<?= $p->slug ?>" <?= $banner->placement === $p->slug ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($p->title) ?>
+                            <?= e($p->title) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -51,7 +51,7 @@ include __DIR__ . '/../../partials/admin/header.php';
             <div class="form-group">
                 <?php if ($banner->image_path): ?>
                     <div style="margin-bottom:10px;">
-                        <img src="<?= htmlspecialchars($banner->image_path) ?>" alt="" style="max-width:300px;max-height:150px;border-radius:4px;">
+                        <img src="<?= e($banner->image_path) ?>" alt="" style="max-width:300px;max-height:150px;border-radius:4px;">
                     </div>
                 <?php endif; ?>
                 <label>تصویر جدید (اختیاری)</label>
@@ -60,7 +60,7 @@ include __DIR__ . '/../../partials/admin/header.php';
 
             <div class="form-group">
                 <label>لینک</label>
-                <input type="url" name="link" value="<?= htmlspecialchars($banner->link ?? '') ?>" class="form-control">
+                <input type="url" name="link" value="<?= e($banner->link ?? '') ?>" class="form-control">
             </div>
 
             <div class="form-row">
@@ -96,7 +96,7 @@ include __DIR__ . '/../../partials/admin/header.php';
 
             <div class="form-group">
                 <label>متن جایگزین (alt)</label>
-                <input type="text" name="alt_text" value="<?= htmlspecialchars($banner->alt_text ?? '') ?>" class="form-control">
+                <input type="text" name="alt_text" value="<?= e($banner->alt_text ?? '') ?>" class="form-control">
             </div>
 
             <div class="form-group">

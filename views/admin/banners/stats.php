@@ -75,8 +75,8 @@ include __DIR__ . '/../../partials/admin/header.php';
             <tbody>
                 <?php foreach ($placements as $p): ?>
                     <tr>
-                        <td><?= htmlspecialchars($p->title) ?></td>
-                        <td><code><?= htmlspecialchars($p->page) ?></code></td>
+                        <td><?= e($p->title) ?></td>
+                        <td><code><?= e($p->page) ?></code></td>
                         <td>
                             <span class="badge <?= $p->is_active ? 'badge-success' : 'badge-secondary' ?>">
                                 <?= $p->is_active ? 'فعال' : 'غیرفعال' ?>

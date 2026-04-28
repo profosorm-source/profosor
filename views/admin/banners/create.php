@@ -42,7 +42,7 @@ include __DIR__ . '/../../partials/admin/header.php';
                 <label>جایگاه *</label>
                 <select name="placement" required class="form-control">
                     <?php foreach ($placements as $p): ?>
-                        <option value="<?= $p->slug ?>"><?= htmlspecialchars($p->title) ?></option>
+                        <option value="<?= $p->slug ?>"><?= e($p->title) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

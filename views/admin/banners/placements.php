@@ -13,7 +13,7 @@ include __DIR__ . '/../../partials/admin/header.php';
         <?php foreach ($placements as $p): ?>
             <div class="placement-card <?= $p->is_active ? 'active' : 'inactive' ?>">
                 <div class="placement-header">
-                    <h3><?= htmlspecialchars($p->title) ?></h3>
+                    <h3><?= e($p->title) ?></h3>
                     <div class="badge <?= $p->is_active ? 'badge-success' : 'badge-secondary' ?>">
                         <?= $p->is_active ? '✅ فعال' : '❌ غیرفعال' ?>
                     </div>
@@ -22,15 +22,15 @@ include __DIR__ . '/../../partials/admin/header.php';
                 <div class="placement-info">
                     <div class="info-row">
                         <span class="label">کد:</span>
-                        <code><?= htmlspecialchars($p->slug) ?></code>
+                        <code><?= e($p->slug) ?></code>
                     </div>
                     <div class="info-row">
                         <span class="label">صفحه:</span>
-                        <span><?= htmlspecialchars($p->page) ?></span>
+                        <span><?= e($p->page) ?></span>
                     </div>
                     <div class="info-row">
                         <span class="label">ابعاد:</span>
-                        <span><?= htmlspecialchars($p->dimensions ?? '-') ?></span>
+                        <span><?= e($p->dimensions ?? '-') ?></span>
                     </div>
                     <div class="info-row">
                         <span class="label">حداکثر:</span>
@@ -54,7 +54,7 @@ include __DIR__ . '/../../partials/admin/header.php';
 
                 <?php if ($p->description): ?>
                     <div class="placement-desc">
-                        <small><?= htmlspecialchars($p->description) ?></small>
+                        <small><?= e($p->description) ?></small>
                     </div>
                 <?php endif; ?>
             </div>

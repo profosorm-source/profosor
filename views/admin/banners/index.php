@@ -62,7 +62,7 @@ include __DIR__ . '/../../partials/admin/header.php';
                     <option value="">همه</option>
                     <?php foreach ($placements as $p): ?>
                         <option value="<?= $p->slug ?>" <?= ($filters['placement'] ?? '') === $p->slug ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($p->title) ?>
+                            <?= e($p->title) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -79,7 +79,7 @@ include __DIR__ . '/../../partials/admin/header.php';
 
             <div class="filter-group">
                 <label>جستجو:</label>
-                <input type="text" name="search" placeholder="عنوان..." value="<?= htmlspecialchars($filters['search'] ?? '') ?>">
+                <input type="text" name="search" placeholder="عنوان..." value="<?= e($filters['search'] ?? '') ?>">
             </div>
 
             <button type="submit" class="btn btn-primary">فیلتر</button>
@@ -109,18 +109,18 @@ include __DIR__ . '/../../partials/admin/header.php';
                         <td><?= $banner->id ?></td>
                         <td>
                             <?php if ($banner->image_path): ?>
-                                <img src="<?= htmlspecialchars($banner->image_path) ?>" alt="" style="max-width:80px;max-height:50px;object-fit:cover;">
+                                <img src="<?= e($banner->image_path) ?>" alt="" style="max-width:80px;max-height:50px;object-fit:cover;">
                             <?php else: ?>
                                 <span class="text-muted">-</span>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <strong><?= htmlspecialchars($banner->title) ?></strong>
+                            <strong><?= e($banner->title) ?></strong>
                             <?php if ($banner->user_name): ?>
-                                <br><small class="text-muted">کاربر: <?= htmlspecialchars($banner->user_name) ?></small>
+                                <br><small class="text-muted">کاربر: <?= e($banner->user_name) ?></small>
                             <?php endif; ?>
                         </td>
-                        <td><span class="badge badge-info"><?= htmlspecialchars($banner->placement) ?></span></td>
+                        <td><span class="badge badge-info"><?= e($banner->placement) ?></span></td>
                         <td><?= banner_type_label($banner->banner_type) ?></td>
                         <td><?= banner_status_badge($banner) ?></td>
                         <td>
