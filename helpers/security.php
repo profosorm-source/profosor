@@ -19,7 +19,7 @@ if (!function_exists('sanitize')) {
         }
         
         if (is_string($input)) {
-            return htmlspecialchars(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
+            return e(strip_tags(trim($input)), ENT_QUOTES, 'UTF-8');
         }
         
         return $input;
@@ -352,7 +352,7 @@ if (!function_exists('sanitize_url')) {
 
         // پروتکل‌های مجاز
         if (preg_match('/^https?:\/\//i', $url)) {
-            return htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+            return e($url, ENT_QUOTES, 'UTF-8');
         }
 
         // رد هر چیزی که با javascript:, data:, vbscript: و مشابه شروع شود

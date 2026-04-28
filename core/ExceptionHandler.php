@@ -415,7 +415,7 @@ private static function extractAppOriginFromTrace(\Throwable $exception): array
             if ($isJson) {
                 echo json_encode($error, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             } else {
-                echo '<pre>' . htmlspecialchars(
+                echo '<pre>' . e(
                     print_r($error, true),
                     ENT_QUOTES,
                     'UTF-8'
@@ -528,17 +528,17 @@ private static function extractAppOriginFromTrace(\Throwable $exception): array
         <div class="error-box">
             <h1>خطای سیستم</h1>
             <div class="message">
-                <strong><?= htmlspecialchars(get_class($exception)) ?>:</strong><br>
-                <?= htmlspecialchars($exception->getMessage()) ?>
+                <strong><?= e(get_class($exception)) ?>:</strong><br>
+                <?= e($exception->getMessage()) ?>
             </div>
             <div class="meta">
-                <strong>فایل:</strong> <?= htmlspecialchars($exception->getFile()) ?><br>
-                <strong>خط:</strong> <?= (int) $exception->getLine() ?>
+                <strong>فایل:</strong> <?= e($exception->getFile()) ?><br>
+                <strong>خط:</strong> <?= e((int) $exception->getLine()) ?>
             </div>
 
             <?php if ($isDebug): ?>
                 <h3>Stack Trace:</h3>
-                <div class="trace"><?= htmlspecialchars($trace) ?></div>
+                <div class="trace"><?= e($trace) ?></div>
             <?php endif; ?>
         </div>
     </body>

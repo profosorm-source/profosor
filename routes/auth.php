@@ -8,6 +8,7 @@
 
 use App\Controllers\User\AuthController as UserAuthController;
 use App\Controllers\User\TwoFactorController;
+use App\Controllers\OAuthController;
 use App\Middleware\GuestMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CSRFMiddleware;
@@ -38,3 +39,21 @@ $router->post('/email/resend-verification',[UserAuthController::class, 'resendVe
 
 // ── خروج (فقط POST — حذف GET برای جلوگیری از CSRF) ──────────────────────
 $router->post('/logout', [UserAuthController::class, 'logout'], [AuthMiddleware::class, CSRFMiddleware::class]);
+
+// ── Social Login — Google و Facebook (OAuth) ────────────────────────────
+// برائے مہمان — OAuth redirect
+app()->router->group(['middleware' => [GuestMiddleware::class]], function ($router) {
+    $router->get('/login/google',    [OAuthController::class, 'loginGoogle']);
+    $router->get('/login/facebook',  [OAuthController::class, 'loginFacebook']);
+});
+
+// OAuth callbacks (بغیر middleware — external providers سے) ─────────────────
+$router->get('/auth/callback/google',   [OAuthController::class, 'callbackGoogle']);
+$router->get('/auth/callback/facebook', [OAuthController::class, 'callbackFacebook']);
+
+// ── Social Accounts Management (authenticated users only) ────────────────
+app()->router->group(['middleware' => [AuthMiddleware::class]], function ($router) {
+    $router->get('/accounts/social',          [OAuthController::class, 'listAccounts']);
+    $router->post('/accounts/social/link',    [OAuthController::class, 'linkAccount'], [CSRFMiddleware::class]);
+    $router->post('/accounts/social/unlink',  [OAuthController::class, 'unlinkAccount'], [CSRFMiddleware::class]);
+});

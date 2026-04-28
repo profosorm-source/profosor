@@ -54,12 +54,12 @@ use App\Controllers\Admin\AccountDeletionManagementController;
 use App\Controllers\Admin\BackupManagementController;
 use App\Controllers\Admin\AdminAnalyticsController;
 
-$admin = [AuthMiddleware::class, AdminMiddleware::class];
+$admin = [AuthMiddleware::class, AdminMiddleware::class, CSRFMiddleware::class];
 $r     = app()->router;
 
 // ── ورود/خروج ──────────────────────────────────────────────────────────────
 $r->get('/admin/login',   [AdminAuthController::class, 'showLogin']);
-$r->post('/admin/login',  [AdminAuthController::class, 'login']);
+$r->post('/admin/login',  [AdminAuthController::class, 'login'], [CSRFMiddleware::class]);
 $r->post('/admin/logout', [AdminAuthController::class, 'logout'], [AuthMiddleware::class, AdminMiddleware::class]);
 
 // ── داشبورد ────────────────────────────────────────────────────────────────

@@ -32,7 +32,7 @@ if (!function_exists('xss_clean')) {
         $data = preg_replace('/vbscript:/i', '', $data);
         
         // HTML special chars
-        $data = htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
+        $data = e($data, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
         
         return $data;
     }
@@ -54,7 +54,7 @@ if (!function_exists('escape_attr')) {
      */
     function escape_attr(string $data): string
     {
-        return htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
+        return e($data, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
     }
 }
 
@@ -72,7 +72,7 @@ if (!function_exists('escape_url')) {
             return '';
         }
         
-        return htmlspecialchars($url, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
+        return e($url, ENT_QUOTES | ENT_HTML5, 'UTF-8', true);
     }
 }
 

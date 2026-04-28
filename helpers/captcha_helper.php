@@ -41,15 +41,15 @@ if (!function_exists('captcha_field')) {
                      data-type="math">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
                         <label style="margin:0;">حل کنید:</label>
-                        <span id="<?= $captchaId ?>_question" style="font-weight:700;font-size:16px;direction:ltr;">
+                        <span id="<?= e($captchaId) ?>_question" style="font-weight:700;font-size:16px;direction:ltr;">
                             <?= e($captcha['question']) ?>
                         </span>
                         <button type="button"
-                                data-captcha-refresh="<?= $captchaId ?>"
+                                data-captcha-refresh="<?= e($captchaId) ?>"
                                 style="background:none;border:none;cursor:pointer;color:#0066cc;padding:2px 6px;font-size:20px;line-height:1;"
                                 title="تعویض کپچا">&#x21BB;</button>
                     </div>
-                    <input type="hidden" name="captcha_token" id="<?= $captchaId ?>_token" value="<?= e($captcha['token']) ?>">
+                    <input type="hidden" name="captcha_token" id="<?= e($captchaId )?>_token" value="<?= e($captcha['token']) ?>">
                     <input type="text" name="captcha_response" class="form-control" required autocomplete="off" placeholder="جواب را وارد کنید">
                 </div>
                 <?php
@@ -61,21 +61,21 @@ if (!function_exists('captcha_field')) {
                 $imgUrl   = url('file/view/captcha/' . $filename) . '?t=' . time();
                 $refreshUrl = url('captcha/refresh?type=image');
                 ?>
-                <div class="form-group captcha-container" id="<?= $captchaId ?>_wrap"
+                <div class="form-group captcha-container" id="<?= e($captchaId) ?>_wrap"
                      data-refresh-url="<?= e($refreshUrl) ?>"
                      data-type="image">
                     <label>کد تصویر را وارد کنید:</label>
                     <div style="display:flex;align-items:center;gap:10px;margin:6px 0;">
-                        <img id="<?= $captchaId ?>_img"
+                        <img id="<?= e($captchaId) ?>_img"
                              src="<?= e($imgUrl) ?>"
                              alt="CAPTCHA"
                              style="border:1px solid #ddd;border-radius:4px;height:50px;">
                         <button type="button"
-                                data-captcha-refresh="<?= $captchaId ?>"
+                                data-captcha-refresh="<?= e($captchaId) ?>"
                                 style="background:none;border:none;cursor:pointer;color:#0066cc;padding:2px 6px;font-size:20px;line-height:1;"
                                 title="تعویض کپچا">&#x21BB;</button>
                     </div>
-                    <input type="hidden" name="captcha_token" id="<?= $captchaId ?>_token" value="<?= e($captcha['token']) ?>">
+                    <input type="hidden" name="captcha_token" id="<?= e($captchaId )?>_token" value="<?= e($captcha['token']) ?>">
                     <input type="text" name="captcha_response" class="form-control" required autocomplete="off" placeholder="کد تصویر">
                 </div>
                 <?php

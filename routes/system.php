@@ -11,7 +11,9 @@ use App\Controllers\Admin\EmailQueueController;
 use App\Controllers\Admin\ApiTokenAdminController;
 use App\Controllers\Admin\CacheAdminController;
 
-$admin = [AuthMiddleware::class, AdminMiddleware::class];
+use App\Middleware\CSRFMiddleware;
+
+$admin = [AuthMiddleware::class, AdminMiddleware::class, CSRFMiddleware::class];
 $r     = app()->router;
 
 // ── Cron ──────────────────────────────────────────────────────────────────

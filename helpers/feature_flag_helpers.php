@@ -160,7 +160,7 @@ if (!function_exists('feature_config')) {
     {
         static $model;
         if (!$model) {
-            $model = app(\App\Models\FeatureFlagUltimate::class);
+            $model = \Core\Container::getInstance()->make(\App\Models\FeatureFlagUltimate::class);
         }
         
         return $model->getConfigValue($name, $key, $default);

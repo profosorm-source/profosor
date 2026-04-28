@@ -55,6 +55,27 @@ require_once BASE_PATH . '/core/Autoloader.php';
 // Helpers از طریق composer autoload (files section) لود می‌شوند
 // نیازی به require_once دستی نیست
 
+// ── بارگذاری .env ────────────────────────────────────────────
+$envPath = BASE_PATH . '/.env';
+if (file_exists($envPath)) {
+    $env = parse_ini_file($envPath, false, INI_SCANNER_RAW);
+    if ($env === false) {
+        die('.env file is invalid');
+    }
+    $appDebug = filter_var($env['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN);
+    if ($appDebug) {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '1');
+    } else {
+        error_reporting(0);
+        ini_set('display_errors', '0');
+    }
+} else {
+    // قبل از لود config، حداقل خطاها رو نشان بده
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+}
+
 // Check APP_KEY
 if (config('app.key') === '') {
     throw new Exception('APP_KEY must be set in environment variables');
@@ -1244,3 +1265,138 @@ $container->singleton(\App\Policies\FeatureFlagPolicy::class, function($c) {
 // Application — باید آخرین خط باشد
 $app = Application::getInstance();
 return $app;
+// ---------------------------------------------------------------------
+// AdSystemManager ? Adapter?? (Unified Ad Service - Sprint 1)
+// ---------------------------------------------------------------------
+
+// Adapter??
+$container->singleton(\App\Services\Adapters\CustomTaskAdapter::class, function($c) {
+    return new \App\Services\Adapters\CustomTaskAdapter(
+        $c->make(\App\Models\CustomTask::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\Core\Database::class)
+    );
+});
+
+$container->singleton(\App\Services\Adapters\SeoAdAdapter::class, function($c) {
+    return new \App\Services\Adapters\SeoAdAdapter(
+        $c->make(\App\Models\SeoAd::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\Core\Database::class)
+    );
+});
+
+$container->singleton(\App\Services\Adapters\BannerAdapter::class, function($c) {
+    return new \App\Services\Adapters\BannerAdapter(
+        $c->make(\App\Models\Banner::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\Core\Database::class)
+    );
+});
+
+$container->singleton(\App\Services\Adapters\VitrineAdapter::class, function($c) {
+    return new \App\Services\Adapters\VitrineAdapter(
+        $c->make(\App\Models\VitrineListing::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\Core\Database::class)
+    );
+});
+
+$container->singleton(\App\Services\Adapters\StoryPromotionAdapter::class, function($c) {
+    return new \App\Services\Adapters\StoryPromotionAdapter(
+        $c->make(\Core\Database::class)
+    );
+});
+
+$container->singleton(\App\Services\Adapters\AdTubeAdapter::class, function($c) {
+    return new \App\Services\Adapters\AdTubeAdapter(
+        $c->make(\Core\Database::class)
+    );
+});
+
+// AdSystemManager
+$container->singleton(\App\Services\AdSystemManager::class, function($c) {
+    return new \App\Services\AdSystemManager($c);
+});
+
+// ---------------------------------------------------------------------
+// Transaction Reversal & Reconciliation Services (Sprint 2-3)
+// ---------------------------------------------------------------------
+
+$container->singleton(\App\Services\TransactionReversalService::class, function($c) {
+    return new \App\Services\TransactionReversalService(
+        $c->make(\App\Models\Transaction::class),
+        $c->make(\App\Models\Wallet::class),
+        $c->make(\App\Models\LedgerEntry::class),
+        $c->make(\Core\Database::class),
+        $c->make(\Core\Logger::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\App\Services\LedgerService::class),
+        $c->make(\App\Services\AuditTrail::class)
+    );
+});
+
+$container->singleton(\App\Services\ReconciliationService::class, function($c) {
+    return new \App\Services\ReconciliationService(
+        $c->make(\App\Models\Order::class),
+        $c->make(\App\Models\Transaction::class),
+        $c->make(\App\Models\LedgerEntry::class),
+        $c->make(\App\Models\Wallet::class),
+        $c->make(\Core\Database::class),
+        $c->make(\Core\Logger::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\App\Services\LedgerService::class),
+        $c->make(\App\Services\ReferralCommissionService::class),
+        $c->make(\App\Services\AuditTrail::class)
+    );
+});
+
+// ---------------------------------------------------------------------
+// Unified ReferralService (Sprint 4)
+// ---------------------------------------------------------------------
+
+$container->singleton(\App\Services\ReferralService::class, function($c) {
+    return new \App\Services\ReferralService(
+        $c->make(\Core\Database::class),
+        $c->make(\Core\Logger::class),
+        $c->make(\App\Services\WalletService::class),
+        $c->make(\App\Services\NotificationService::class),
+        $c->make(\App\Services\AuditTrail::class),
+        $c->make(\App\Models\ReferralCommission::class),
+        $c->make(\App\Models\User::class)
+    );
+});
+
+// ---------------------------------------------------------------------
+// PolicyService (Sprint 5)
+// ---------------------------------------------------------------------
+
+$container->singleton(\App\Services\PolicyService::class, function($c) {
+    return new \App\Services\PolicyService(
+        $c->make(\Core\Database::class),
+        $c->make(\Core\Logger::class),
+        $c->make(\App\Models\User::class),
+        $c->make(\App\Models\Role::class),
+        $c->make(\App\Services\AuditTrail::class)
+    );
+});
+
+// ---------------------------------------------------------------------
+// Sprint 6: Upload Enforcement (already exists in app.php)
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Sprint 7: OAuthService (Social Login)
+// ---------------------------------------------------------------------
+
+$container->singleton(\App\Services\OAuthService::class, function($c) {
+    return new \App\Services\OAuthService(
+        $c->make(\Core\Database::class),
+        $c->make(\Core\Logger::class),
+        $c->make(\App\Models\User::class),
+        $c->make(\App\Models\SocialAccount::class),
+        $c->make(\App\Services\AuthService::class),
+        $c->make(\App\Services\NotificationService::class),
+        $c->make(\App\Services\AuditTrail::class)
+    );
+});

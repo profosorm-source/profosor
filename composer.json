@@ -4,7 +4,9 @@
     "type": "project",
     "require": {
         "php": ">=8.2",
-        "phpmailer/phpmailer": "^7.0"
+        "phpmailer/phpmailer": "^7.0",
+        "ext-pdo": "*",
+        "ext-mysqli": "*"
     },
     "autoload": {
         "psr-4": {
@@ -29,7 +31,8 @@
             "helpers/captcha_helper.php",
             "helpers/notifications.php",
             "helpers/rate_limit.php",
-            "helpers/fraud_helper.php"
+            "helpers/fraud_helper.php",
+            "helpers/feature_flag_helpers.php"
         ]
     },
     "config": {

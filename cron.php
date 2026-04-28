@@ -332,6 +332,13 @@ $scheduler->daily('03:00', function () {
     return ['deleted_emails' => $affected];
 }, 'cleanup_email_queue');
 
+// پردازش پرداخت‌های زمانبندی‌شده
+$scheduler->daily('03:15', function () {
+    $service = Container::getInstance()->make(\App\Services\ScheduledPaymentService::class);
+    $result = $service->processDuePayments(feature_config('cron_scheduled_payment_batch_size', 'rollout_percentage', 50));
+    return $result;
+}, 'scheduled_payments');
+
 // پاک‌سازی تصاویر KYC رد شده قدیمی (۶۰ روز)
 $scheduler->daily('03:30', function () {
     $db   = Database::getInstance();
