@@ -178,6 +178,70 @@ class BackupService
     }
 
     /**
+     * بازیابی از پشتیبان
+     */
+    public function restoreBackup(string $filename): array
+    {
+        try {
+            $filepath = $this->backupDir . '/' . $filename;
+            $gzFilepath = $filepath . '.gz';
+
+            // بررسی وجود فایل
+            if (file_exists($gzFilepath)) {
+                // unzip
+                exec("gunzip " . escapeshellarg($gzFilepath), $output, $exitCode);
+                if ($exitCode !== 0) {
+                    throw new \Exception('Failed to unzip backup file');
+                }
+            } elseif (!file_exists($filepath)) {
+                throw new \Exception('Backup file not found');
+            }
+
+            // دریافت تنظیمات دیتابیس
+            $dbName = env('DB_DATABASE', 'chortke');
+            $dbUser = env('DB_USERNAME', 'root');
+            $dbPass = env('DB_PASSWORD', '');
+            $dbHost = env('DB_HOST', 'localhost');
+
+            // دستور mysql import
+            $command = sprintf(
+                'mysql --host=%s --user=%s --password=%s %s < %s 2>&1',
+                escapeshellarg($dbHost),
+                escapeshellarg($dbUser),
+                $dbPass ? escapeshellarg($dbPass) : '',
+                escapeshellarg($dbName),
+                escapeshellarg($filepath)
+            );
+
+            exec($command, $output, $exitCode);
+
+            if ($exitCode !== 0) {
+                throw new \Exception('mysql import failed: ' . implode("\n", $output));
+            }
+
+            $this->logger->info('backup.restored', [
+                'filename' => $filename,
+                'timestamp' => date('Y-m-d H:i:s')
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Backup restored successfully'
+            ];
+
+        } catch (\Exception $e) {
+            $this->logger->error('backup.restore_failed', [
+                'filename' => $filename,
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * دریافت آمار پشتیبان‌ها
      */
     public function getBackupStats(): array

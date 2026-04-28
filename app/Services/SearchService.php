@@ -150,12 +150,12 @@ class SearchService
 
         // ✅ Platform filter
         if (!empty($f['platform'])) {
-            $query->where('platform', '=', htmlspecialchars($f['platform'], ENT_QUOTES, 'UTF-8'));
+            $query->where('platform', '=', e($f['platform'], ENT_QUOTES, 'UTF-8'));
         }
 
         // ✅ Task type filter
         if (!empty($f['task_type'])) {
-            $query->where('task_type', '=', htmlspecialchars($f['task_type'], ENT_QUOTES, 'UTF-8'));
+            $query->where('task_type', '=', e($f['task_type'], ENT_QUOTES, 'UTF-8'));
         }
 
         // ✅ Price range
@@ -206,7 +206,7 @@ class SearchService
 
         // ✅ Platform filter
         if (!empty($f['platform'])) {
-            $query->where('ip.platform', '=', htmlspecialchars($f['platform'], ENT_QUOTES, 'UTF-8'));
+            $query->where('ip.platform', '=', e($f['platform'], ENT_QUOTES, 'UTF-8'));
         }
 
         // ✅ Follower range
@@ -257,12 +257,12 @@ class SearchService
 
         // ✅ Category filter
         if (!empty($f['category'])) {
-            $query->where('vl.category', '=', htmlspecialchars($f['category'], ENT_QUOTES, 'UTF-8'));
+            $query->where('vl.category', '=', e($f['category'], ENT_QUOTES, 'UTF-8'));
         }
 
         // ✅ Platform filter
         if (!empty($f['platform'])) {
-            $query->where('vl.platform', '=', htmlspecialchars($f['platform'], ENT_QUOTES, 'UTF-8'));
+            $query->where('vl.platform', '=', e($f['platform'], ENT_QUOTES, 'UTF-8'));
         }
 
         // ✅ Price range

@@ -591,7 +591,7 @@ EOT;
      */
     private function sanitizeText(string $text): string
     {
-        return htmlspecialchars(trim($text), ENT_QUOTES, 'UTF-8');
+        return e(trim($text), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -602,7 +602,7 @@ EOT;
      */
     private function escapeText(string $text): string
     {
-        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+        return e($text, ENT_QUOTES, 'UTF-8');
     }
 
     /**

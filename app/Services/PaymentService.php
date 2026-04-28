@@ -12,13 +12,12 @@ use App\Services\Payment\DgPayGateway;
 use Core\Logger;
 use Core\IdempotencyKey;
 
-class PaymentService
+class PaymentService extends PaymentBaseService
 {
     private \App\Models\BankCard $bankCardModel;
     private PaymentLog $log;
     private WalletService $wallet;
     private NotificationService $notifier;
-    private Logger $logger;
 	private IdempotencyKey $idempotencyKey;
 
     public function __construct(
@@ -29,20 +28,28 @@ class PaymentService
     Logger $logger,
     IdempotencyKey $idempotencyKey
 ) {
-    $this->log = $log;
-    $this->wallet = $walletService;
-    $this->notifier = $notificationService;
-    $this->bankCardModel = $bankCardModel;
-    $this->logger = $logger;
-    $this->idempotencyKey = $idempotencyKey;
-}
+        parent::__construct($logger);
+        $this->log = $log;
+        $this->wallet = $walletService;
+        $this->notifier = $notificationService;
+        $this->bankCardModel = $bankCardModel;
+        $this->idempotencyKey = $idempotencyKey;
+    }
 
   private function gateway(string $name): ?PaymentGatewayInterface
 {
     $name = strtolower(trim($name));
 
+    $paymentGatewayModel = new \App\Models\PaymentGateway();
+
     return match ($name) {
-        'zarinpal' => new ZarinPalGateway(),
+        'zarinpal' => new ZarinPalGateway($paymentGatewayModel, $this->logger),
+        'nextpay' => new NextPayGateway($paymentGatewayModel, $this->logger),
+        'idpay' => new IDPayGateway($paymentGatewayModel, $this->logger),
+        'dgpay' => new DgPayGateway($paymentGatewayModel, $this->logger),
+        default => null,
+    };
+}
         'nextpay' => new NextPayGateway(),
         'idpay' => new IDPayGateway(),
         'dgpay' => new DgPayGateway(),
@@ -51,27 +58,30 @@ class PaymentService
 }
     public function create(int $userId, string $gatewayName, float $amount, int $bankCardId): array
     {
-        $this->logger->info('payment.create.started', [
+        $this->logStart('create', [
             'user_id' => $userId,
             'gateway' => $gatewayName,
             'amount' => $amount,
             'bank_card_id' => $bankCardId
         ]);
+
+        // اعتبارسنجی مبلغ
+        $amountValidation = $this->validateAmount($amount);
+        if (!$amountValidation['valid']) {
+            $this->logError('create', 'amount_validation_failed', [
+                'user_id' => $userId,
+                'errors' => $amountValidation['errors']
+            ]);
+            return ['success' => false, 'message' => $amountValidation['errors'][0]];
+        }
         
         if (!CurrencyService::isIRT()) {
-            $this->logger->warning('payment.create.failed', [
-                'user_id' => $userId,
-                'reason' => 'currency_not_irt'
-            ]);
+            $this->logError('create', 'currency_not_irt', ['user_id' => $userId]);
             return ['success' => false, 'message' => 'پرداخت آنلاین فقط در حالت تومان فعال است'];
         }
 
         if ($amount < 1000) {
-            $this->logger->warning('payment.create.failed', [
-                'user_id' => $userId,
-                'reason' => 'amount_too_low',
-                'amount' => $amount
-            ]);
+            $this->logError('create', 'amount_too_low', ['user_id' => $userId, 'amount' => $amount]);
             return ['success' => false, 'message' => 'حداقل مبلغ ۱۰۰۰ تومان است'];
         }
 
@@ -84,9 +94,8 @@ class PaymentService
             ->first();
 
         if (!$card) {
-            $this->logger->error('payment.create.failed', [
+            $this->logError('create', 'invalid_bank_card', [
                 'user_id' => $userId,
-                'reason' => 'invalid_bank_card',
                 'bank_card_id' => $bankCardId
             ]);
             return ['success' => false, 'message' => 'کارت انتخابی معتبر یا تأیید شده نیست'];
@@ -94,9 +103,8 @@ class PaymentService
 
         $gw = $this->gateway($gatewayName);
         if (!$gw) {
-            $this->logger->error('payment.create.failed', [
+            $this->logError('create', 'invalid_gateway', [
                 'user_id' => $userId,
-                'reason' => 'invalid_gateway',
                 'gateway' => $gatewayName
             ]);
             return ['success' => false, 'message' => 'درگاه نامعتبر است'];
@@ -108,7 +116,7 @@ class PaymentService
         try {
             $res = $gw->createPayment($amount, $desc, $callback);
         } catch (\Exception $e) {
-            $this->logger->critical('payment.gateway.exception', [
+            $this->logError('create', 'gateway_exception', [
                 'user_id' => $userId,
                 'gateway' => $gatewayName,
                 'amount' => $amount,
@@ -133,7 +141,7 @@ class PaymentService
         ]);
 
         if (!$res['success']) {
-            $this->logger->error('payment.create.gateway_failed', [
+            $this->logError('create', 'gateway_failed', [
                 'user_id' => $userId,
                 'gateway' => $gatewayName,
                 'amount' => $amount,
@@ -143,7 +151,7 @@ class PaymentService
             return ['success' => false, 'message' => $res['message'] ?? 'خطا در ایجاد پرداخت'];
         }
 
-        $this->logger->info('payment.create.success', [
+        $this->logSuccess('create', [
             'user_id' => $userId,
             'gateway' => $gatewayName,
             'amount' => $amount,

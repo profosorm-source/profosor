@@ -63,7 +63,7 @@ class SitemapService
     private function addUrl(string $loc, string $priority, string $changefreq, string $lastmod): string
     {
         $xml = "  <url>\n";
-        $xml .= "    <loc>" . htmlspecialchars($loc) . "</loc>\n";
+        $xml .= "    <loc>" . e($loc) . "</loc>\n";
         $xml .= "    <lastmod>{$lastmod}</lastmod>\n";
         $xml .= "    <changefreq>{$changefreq}</changefreq>\n";
         $xml .= "    <priority>{$priority}</priority>\n";

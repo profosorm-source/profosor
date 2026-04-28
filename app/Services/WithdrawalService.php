@@ -12,7 +12,7 @@ use App\Models\Setting;
 use App\Services\WithdrawalLimitService;
 use App\Services\AuditTrail;
 
-class WithdrawalService
+class WithdrawalService extends PaymentBaseService
 {
     private WithdrawalLimitService   $withdrawalLimitService;
     private \App\Models\User         $userModel;
@@ -25,7 +25,6 @@ class WithdrawalService
     private WalletService            $wallet;
     private NotificationService      $notifier;
     private AuditTrail               $auditTrail;
-    private Logger                  $logger;
 
     public function __construct(
         Database               $db,
@@ -41,6 +40,7 @@ class WithdrawalService
         AuditTrail             $auditTrail,
         Logger                 $logger
     ) {
+        parent::__construct($logger);
         $this->db                     = $db;
         $this->model                  = $model;
         $this->limitModel             = $limitModel;
@@ -59,7 +59,7 @@ public function requestFromUser(int $userId, array $payload): array
 {
     $amount = (float)($payload['amount'] ?? 0);
     $currency = (string)($payload['currency'] ?? 'irt');
-    $cardId = (int)($payload['card_id'] ?? 0);
+    $bankCardId = (int)($payload['bank_card_id'] ?? 0);
     $requestId = (string)($payload['request_id'] ?? bin2hex(random_bytes(8)));
     $ip = (string)($payload['ip'] ?? '');
     $fingerprint = (string)($payload['fingerprint'] ?? '');
@@ -111,7 +111,7 @@ public function requestFromUser(int $userId, array $payload): array
             'request_id' => $requestId,
             'ip' => $ip,
             'fingerprint' => $fingerprint,
-            'card_id' => $cardId,
+            'bank_card_id' => $bankCardId,
         ]);
 
         if (empty($debit['success'])) {
@@ -121,7 +121,7 @@ public function requestFromUser(int $userId, array $payload): array
 
         $withdrawalId = $this->withdrawalModel->create([
             'user_id' => $userId,
-            'bank_card_id' => $cardId,
+            'bank_card_id' => $bankCardId,
             'amount' => $amount,
             'currency' => $currency,
             'status' => 'pending',
@@ -345,9 +345,17 @@ public function requestFromUser(int $userId, array $payload): array
                 $update['transaction_hash'] = $paymentData['transaction_hash'] ?? null;
             }
 
-            $this->model->update($withdrawalId, $update);
-            $this->wallet->updateLedgerStatusByIdempotency((string)$w->idempotency_key, 'completed');
+            if (!$this->wallet->completeWithdrawal(
+                (int)$w->user_id,
+                (float)$w->amount,
+                strtolower((string)$w->currency),
+                $w->transaction_id
+            )) {
+                $this->db->rollBack();
+                return ['success' => false, 'message' => 'خطا در تکمیل برداشت'];
+            }
 
+            $this->model->update($withdrawalId, $update);
             $this->db->commit();
 
             $this->auditTrail->record('withdrawal.approved', (int)$w->user_id, [
@@ -395,8 +403,6 @@ public function requestFromUser(int $userId, array $payload): array
             $amount   = (float)$w->amount;
             $currency = strtolower((string)$w->currency);
 
-            $balanceField = ($currency === 'usdt') ? 'balance_usdt' : 'balance_irt';
-
             $wallet = $this->db->query(
                 "SELECT * FROM wallets WHERE user_id = :user_id FOR UPDATE",
                 ['user_id' => $userId]
@@ -407,35 +413,10 @@ public function requestFromUser(int $userId, array $payload): array
                 return ['success' => false, 'message' => 'کیف پول کاربر یافت نشد'];
             }
 
-            $balanceBefore = (float)$wallet->$balanceField;
-            $balanceAfter  = (float)bcadd((string)$balanceBefore, (string)$amount, 2);
-
-            $this->db->query(
-                "UPDATE wallets SET {$balanceField} = :balance, updated_at = NOW() WHERE user_id = :user_id",
-                ['balance' => $balanceAfter, 'user_id' => $userId]
-            );
-
-            $this->db->query(
-                "INSERT INTO transactions
-                 (user_id, type, currency, amount, balance_before, balance_after,
-                  status, description, metadata, created_at)
-                 VALUES (:user_id, 'withdrawal_refund', :currency, :amount,
-                         :balance_before, :balance_after, 'completed', :description,
-                         :metadata, NOW())",
-                [
-                    'user_id'        => $userId,
-                    'currency'       => $currency,
-                    'amount'         => $amount,
-                    'balance_before' => $balanceBefore,
-                    'balance_after'  => $balanceAfter,
-                    'description'    => 'بازگشت وجه برداشت رد شده',
-                    'metadata'       => json_encode([
-                        'withdrawal_id' => $withdrawalId,
-                        'reason'        => $reason,
-                        'rejected_by'   => $adminId,
-                    ], JSON_UNESCAPED_UNICODE),
-                ]
-            );
+            if (!$this->wallet->cancelWithdrawal($userId, $amount, $currency, $w->transaction_id)) {
+                $this->db->rollBack();
+                return ['success' => false, 'message' => 'خطا در بازگشت وجه'];
+            }
 
             $this->model->update($withdrawalId, [
                 'status'       => 'rejected',

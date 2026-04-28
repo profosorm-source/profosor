@@ -60,6 +60,9 @@ EOT;
 
     /**
      * ثبت سرمایه‌گذاری جدید
+     * 
+     * این متد یک transaction واحد دارد و walletService را بدون transaction فراخوانی می‌کند.
+     * برای تفکیک مسئولیت، باید walletService::_depositUnsafe استفاده شود.
      */
     public function createInvestment(int $userId, array $data): array
     {
@@ -70,24 +73,43 @@ EOT;
             return ['success' => false, 'message' => 'موجودی تتری کیف پول شما کافی نیست'];
         }
 
-        $this->db->beginTransaction();
-
         try {
-            $withdrawResult = $this->walletService->withdraw(
-                $userId,
-                $amount,
-                'usdt',
-                [
-                    'type'        => 'investment_deposit',
-                    'description' => 'سرمایه‌گذاری جدید',
-                ]
-            );
+            // یک transaction واحد برای هر دو عملیات
+            $this->db->beginTransaction();
 
-            if (!$withdrawResult['success']) {
+            // ۱. کسر موجودی کیف‌پول (بدون transaction فیهاخود)
+            $balanceBefore = $balance;
+            $balanceAfter = $balance - $amount;
+            
+            $wallet = $this->db->fetch(
+                "SELECT * FROM wallets WHERE user_id = ? FOR UPDATE",
+                [$userId]
+            );
+            
+            if (!$wallet) {
                 $this->db->rollBack();
-                return ['success' => false, 'message' => 'خطا در کسر موجودی: ' . ($withdrawResult['message'] ?? '')];
+                return ['success' => false, 'message' => 'کیف‌پول یافت نشد'];
             }
 
+            // ثبت تراکنش برداشت
+            $withdrawalTransaction = $this->db->query(
+                "INSERT INTO transactions (user_id, type, currency, amount, balance_before, balance_after, status, description, request_id, created_at)
+                 VALUES (?, 'withdraw', 'usdt', ?, ?, ?, 'pending', 'سرمایه‌گذاری جدید', ?, NOW())",
+                [$userId, $amount, $balanceBefore, $balanceAfter, bin2hex(random_bytes(16))]
+            );
+
+            // به‌روزرسانی موجودی
+            $updated = $this->db->query(
+                "UPDATE wallets SET usdt_balance = ? WHERE user_id = ?",
+                [$balanceAfter, $userId]
+            );
+
+            if (!$updated) {
+                $this->db->rollBack();
+                return ['success' => false, 'message' => 'خطا در بروزرسانی موجودی'];
+            }
+
+            // ۲. ثبت سرمایه‌گذاری
             $investmentId = $this->investmentModel->create([
                 'user_id'                    => $userId,
                 'amount'                     => $amount,

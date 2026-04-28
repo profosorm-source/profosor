@@ -90,6 +90,6 @@ class FeatureFlagViewHelper
             return $attribute;
         }
         
-        return sprintf('%s="%s"', $attribute, htmlspecialchars($value));
+        return sprintf('%s="%s"', $attribute, e($value));
     }
 }

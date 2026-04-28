@@ -793,7 +793,7 @@ EOT;
 
     private function sanitizeInput(?string $input): ?string
     {
-        return $input === null ? null : htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+        return $input === null ? null : e(trim($input), ENT_QUOTES, 'UTF-8');
     }
 
     private function notify(int $userId, string $title, string $message, string $type): void

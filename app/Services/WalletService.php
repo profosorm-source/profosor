@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Wallet;
 use App\Models\Transaction;
+use Core\Container;
 use Core\Database;
 use Core\Logger;
 use App\Services\AuditTrail;
+use App\Services\LedgerService;
 
 class WalletService
 {
@@ -19,6 +21,7 @@ class WalletService
     private Transaction $transactionModel;
     private Database    $db;
     private Logger      $logger;
+    private ?LedgerService $ledgerService = null;
 	private AuditTrail $auditTrail;
 
     public function __construct(
@@ -50,6 +53,21 @@ class WalletService
         return $wallet;
     }
 
+    private function ledger(): LedgerService
+    {
+        if ($this->ledgerService === null) {
+            $this->ledgerService = Container::getInstance()->make(LedgerService::class);
+        }
+        return $this->ledgerService;
+    }
+
+    private function assertWalletActive(int $userId): void
+    {
+        if ($this->walletModel->isFrozen($userId)) {
+            throw new \RuntimeException('کیف پول شما مسدود شده و امکان انجام عملیات وجود ندارد');
+        }
+    }
+
     /**
      * افزایش موجودی (واریز) — با Idempotency Protection
      */
@@ -57,6 +75,11 @@ class WalletService
     {
         $currency = strtolower($currency);
         $this->validateCurrency($currency);
+
+        $refundTypes = ['withdrawal_refund', 'refund', 'deposit_refund', 'scheduled_payment_refund'];
+        if (!in_array($metadata['type'] ?? 'deposit', $refundTypes, true)) {
+            $this->assertWalletActive($userId);
+        }
 
         if ($amount <= 0) {
             throw new \InvalidArgumentException('مبلغ باید بیشتر از صفر باشد');
@@ -137,6 +160,18 @@ class WalletService
                 throw new \RuntimeException('خطا در ثبت تراکنش');
             }
 
+            $this->ledger()->recordDoubleEntry(
+                $transaction->transaction_id,
+                "wallet:{$userId}",
+                'external_payment',
+                $amount,
+                $metadata['description'] ?? 'واریز وجه',
+                [
+                    'gateway' => $metadata['gateway'] ?? null,
+                    'ref_id' => $metadata['ref_id'] ?? null,
+                ]
+            );
+
             $result = [
                 'success'        => true,
                 'transaction_id' => $transaction->transaction_id,
@@ -146,8 +181,8 @@ class WalletService
                 'currency'       => $currency,
             ];
 
-            $idempotencyService->complete($idempotencyKey, $result, $userId);
             $this->db->commit();
+            $idempotencyService->complete($idempotencyKey, $result, $userId);
 
             $this->auditTrail->record('wallet.credited', $userId, [
                 'amount'         => $amount,
@@ -221,6 +256,7 @@ class WalletService
     {
         $currency = strtolower($currency);
         $this->validateCurrency($currency);
+        $this->assertWalletActive($userId);
 
         if ($amount <= 0) {
             throw new \InvalidArgumentException('مبلغ باید بیشتر از صفر باشد');
@@ -274,8 +310,12 @@ class WalletService
             $balanceBefore = $currentBalance;
             $balanceAfter  = (float)bcsub((string)$balanceBefore, (string)$amount, 2);
 
-            if (!$this->walletModel->setBalanceAndWithdrawalTime($userId, $balanceAfter, $currency)) {
-                throw new \RuntimeException('خطا در بروزرسانی موجودی');
+            if (!$this->walletModel->lockBalance($userId, $amount, $currency)) {
+                throw new \RuntimeException('خطا در قفل کردن موجودی');
+            }
+
+            if (!$this->walletModel->updateLastWithdrawal($userId)) {
+                throw new \RuntimeException('خطا در بروزرسانی زمان آخرین برداشت');
             }
 
             $transaction = $this->transactionModel->create([
@@ -313,8 +353,8 @@ class WalletService
                 'status'         => 'pending',
             ];
 
-            $idempotencyService->complete($idempotencyKey, $result, $userId);
             $this->db->commit();
+            $idempotencyService->complete($idempotencyKey, $result, $userId);
 
             $this->auditTrail->record('wallet.debited', $userId, [
                 'amount'         => $amount,
@@ -389,8 +429,31 @@ class WalletService
 
     public function completeWithdrawal(int $userId, float $amount, string $currency, ?string $transactionId): bool
     {
+        $this->assertWalletActive($userId);
+        
         try {
             if ($transactionId) {
+                $transaction = $this->transactionModel->findByTransactionId($transactionId);
+                if ($transaction && $transaction->type === 'withdraw') {
+                    if (!$this->walletModel->deductLocked($userId, $amount, $currency)) {
+                        $this->logger->warning('wallet.complete_withdrawal.locked_deduction_failed', [
+                            'transaction_id' => $transactionId,
+                            'user_id' => $userId,
+                            'amount' => $amount,
+                            'currency' => $currency,
+                        ]);
+                    } else {
+                        $this->ledger()->recordDoubleEntry(
+                            $transactionId,
+                            'platform_cash',
+                            'withdrawal_pending',
+                            $amount,
+                            'Withdrawal completed',
+                            ['user_id' => $userId]
+                        );
+                    }
+                }
+
                 $this->transactionModel->updateStatusByTransactionId($transactionId, $userId, 'completed');
             }
             return true;
@@ -406,31 +469,75 @@ class WalletService
     public function cancelWithdrawal(int $userId, float $amount, string $currency, ?string $transactionId): bool
     {
         try {
-            $result = $this->deposit($userId, $amount, $currency, [
-                'type'               => 'withdrawal_refund',
-                'description'        => 'بازگشت وجه برداشت لغو شده',
-                'ref_transaction_id' => $transactionId,
-            ]);
+            $transaction = null;
+            if ($transactionId) {
+                $transaction = $this->transactionModel->findByTransactionId($transactionId);
+            }
 
-            if (!$result['success']) {
-                $this->logger->error('wallet.cancel_withdrawal.deposit_failed', [
-    'channel' => 'wallet',
-    'message' => $result['message'] ?? null,
-]);
-                return false;
+            if ($transaction && $transaction->type === 'withdraw') {
+                $balanceBefore = $this->walletModel->getBalance($userId, $currency);
+                if ($this->walletModel->unlockBalance($userId, $amount, $currency)) {
+                    $balanceAfter = (float)bcadd((string)$balanceBefore, (string)$amount, 2);
+
+                    $refundTx = $this->transactionModel->create([
+                        'user_id' => $userId,
+                        'type' => 'withdrawal_refund',
+                        'currency' => $currency,
+                        'amount' => $amount,
+                        'balance_before' => $balanceBefore,
+                        'balance_after' => $balanceAfter,
+                        'status' => 'completed',
+                        'description' => 'بازگشت وجه برداشت لغو شده',
+                        'metadata' => json_encode(['ref_transaction_id' => $transactionId], JSON_UNESCAPED_UNICODE),
+                    ]);
+
+                    if ($refundTx) {
+                        $this->ledger()->recordDoubleEntry(
+                            $refundTx->transaction_id,
+                            "wallet:{$userId}",
+                            'withdrawal_pending',
+                            $amount,
+                            'Withdrawal refund',
+                            ['original_transaction' => $transactionId]
+                        );
+                    }
+                } else {
+                    $transaction = null;
+                }
+            }
+
+            if (!$transaction) {
+                $result = $this->deposit($userId, $amount, $currency, [
+                    'type'               => 'withdrawal_refund',
+                    'description'        => 'بازگشت وجه برداشت لغو شده',
+                    'ref_transaction_id' => $transactionId,
+                ]);
+
+                if (!$result['success']) {
+                    $this->logger->error('wallet.cancel_withdrawal.deposit_failed', [
+                        'channel' => 'wallet',
+                        'message' => $result['message'] ?? null,
+                    ]);
+                    return false;
+                }
             }
 
             if ($transactionId) {
-                $this->transactionModel->updateStatusByTransactionId($transactionId, $userId, 'cancelled');
+                $this->transactionModel->recordStatusChange(
+                    $transactionId,
+                    'cancelled',
+                    'Withdrawal cancelled and funds returned',
+                    null,
+                    ['refund_transaction_id' => $transactionId]
+                );
             }
 
             return true;
-
         } catch (\Exception $e) {
             $this->logger->error('wallet.cancel_withdrawal.failed', [
-    'channel' => 'wallet',
-    'error' => $e->getMessage(),
-]);
+                'channel' => 'wallet',
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -472,6 +579,7 @@ class WalletService
             'locked_usdt'        => (float)$wallet->locked_usdt,
             'total_irt'          => (float)$wallet->balance_irt  + (float)$wallet->locked_irt,
             'total_usdt'         => (float)$wallet->balance_usdt + (float)$wallet->locked_usdt,
+            'is_frozen'          => (bool)($wallet->is_frozen ?? 0),
             'last_withdrawal_at' => $wallet->last_withdrawal_at,
             'can_withdraw_today' => $this->walletModel->canWithdrawToday($userId),
             'stats'              => $stats,
@@ -480,6 +588,9 @@ class WalletService
 
     public function transfer(int $fromUserId, int $toUserId, float $amount, string $currency = 'irt', string $description = ''): ?object
     {
+        $this->assertWalletActive($fromUserId);
+        $this->assertWalletActive($toUserId);
+
         if ($amount <= 0) {
             throw new \InvalidArgumentException('مبلغ باید بیشتر از صفر باشد');
         }
@@ -515,7 +626,7 @@ class WalletService
             $this->walletModel->updateBalance($fromUserId, -$amount, $currency);
             $this->walletModel->updateBalance($toUserId, $amount, $currency);
 
-            $this->transactionModel->create([
+            $fromTransaction = $this->transactionModel->create([
                 'user_id'        => $fromUserId,
                 'type'           => 'transfer',
                 'currency'       => $currency,
@@ -538,6 +649,28 @@ class WalletService
                 'description'    => $description ?: "دریافت از کاربر {$fromUserId}",
                 'metadata'       => json_encode(['from_user_id' => $fromUserId]),
             ]);
+
+            if ($fromTransaction) {
+                $this->ledger()->recordDoubleEntry(
+                    $fromTransaction->transaction_id,
+                    "wallet:{$fromUserId}",
+                    "wallet:{$toUserId}",
+                    $amount,
+                    $description ?: "انتقال به کاربر {$toUserId}",
+                    ['counterparty' => $toUserId]
+                );
+            }
+
+            if ($transaction) {
+                $this->ledger()->recordDoubleEntry(
+                    $transaction->transaction_id,
+                    "wallet:{$fromUserId}",
+                    "wallet:{$toUserId}",
+                    $amount,
+                    $description ?: "دریافت از کاربر {$fromUserId}",
+                    ['counterparty' => $fromUserId]
+                );
+            }
 
             $this->db->commit();
 
@@ -575,6 +708,92 @@ class WalletService
             return 0.0;
         }
         return $this->walletModel->getBalance($userId, $currency);
+    }
+
+    public function isWalletFrozen(int $userId): bool
+    {
+        return $this->walletModel->isFrozen($userId);
+    }
+
+    public function freezeWallet(int $userId): bool
+    {
+        return $this->walletModel->freezeWallet($userId);
+    }
+
+    public function unfreezeWallet(int $userId): bool
+    {
+        return $this->walletModel->unfreezeWallet($userId);
+    }
+
+    public function reverseTransaction(string $transactionId, ?int $performedBy = null, ?string $reason = null): bool
+    {
+        $transaction = $this->transactionModel->findByTransactionId($transactionId);
+        if (!$transaction || $transaction->status !== 'completed') {
+            return false;
+        }
+
+        $amount = (float)$transaction->amount;
+        $currency = strtolower($transaction->currency ?? 'irt');
+        $userId = (int)$transaction->user_id;
+        $balanceBefore = $this->walletModel->getBalance($userId, $currency);
+        $balanceAfter = $balanceBefore;
+        $reversalType = 'transaction_reversal';
+        $description = $reason ?? 'Reversal of transaction ' . $transactionId;
+
+        $transactionDelta = bcsub((string)$transaction->balance_after, (string)$transaction->balance_before, 4);
+        $reversalAmount = abs($amount);
+
+        if (bccomp($transactionDelta, '0', 4) < 0) {
+            // Original transaction reduced wallet balance, reversal should credit user wallet.
+            $balanceAfter = (float)bcadd((string)$balanceBefore, (string)$reversalAmount, 2);
+            $this->walletModel->updateBalance($userId, $reversalAmount, $currency);
+            $debitAccount = 'transaction_reversal';
+            $creditAccount = "wallet:{$userId}";
+        } else {
+            // Original transaction increased wallet balance, reversal should debit user wallet.
+            if (bccomp((string)$balanceBefore, (string)$reversalAmount, 2) < 0) {
+                return false;
+            }
+            $balanceAfter = (float)bcsub((string)$balanceBefore, (string)$reversalAmount, 2);
+            $this->walletModel->updateBalance($userId, -$reversalAmount, $currency);
+            $debitAccount = "wallet:{$userId}";
+            $creditAccount = 'transaction_reversal';
+        }
+
+        $reversal = $this->transactionModel->create([
+            'user_id' => $userId,
+            'type' => $reversalType,
+            'currency' => $currency,
+            'amount' => ($transactionDelta < 0 ? $reversalAmount : -$reversalAmount),
+            'balance_before' => $balanceBefore,
+            'balance_after' => $balanceAfter,
+            'status' => 'completed',
+            'description' => $description,
+            'metadata' => json_encode(['original_transaction' => $transactionId], JSON_UNESCAPED_UNICODE),
+        ]);
+
+        if (!$reversal) {
+            return false;
+        }
+
+        $this->ledger()->recordDoubleEntry(
+            $reversal->transaction_id,
+            $debitAccount,
+            $creditAccount,
+            $reversalAmount,
+            $description,
+            ['original_transaction' => $transactionId]
+        );
+
+        $this->transactionModel->recordStatusChange(
+            $transactionId,
+            'reversed',
+            $reason,
+            $performedBy,
+            ['reversal_transaction_id' => $reversal->transaction_id]
+        );
+
+        return true;
     }
 
     public function updateLedgerStatusByIdempotency(string $idempotencyKey, string $newStatus): bool

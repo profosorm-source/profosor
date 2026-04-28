@@ -159,11 +159,11 @@ class ReportService
                 </tr>
                 <tr>
                     <td>کاربران جدید</td>
-                    <td><?= $data['users']['new_users'] ?></td>
+                    <td><?= e($data['users']['new_users']) ?></td>
                 </tr>
                 <tr>
                     <td>KYC تأیید شده</td>
-                    <td><?= $data['users']['kyc_verified'] ?></td>
+                    <td><?= e($data['users']['kyc_verified']) ?></td>
                 </tr>
             </table>
             <?php endif; ?>
@@ -178,18 +178,18 @@ class ReportService
                 </tr>
                 <tr>
                     <td>واریز‌ها</td>
-                    <td><?= $data['transactions']['deposits']['count'] ?></td>
-                    <td><?= number_format((float)$data['transactions']['deposits']['amount'], 0) ?></td>
+                    <td><?= e($data['transactions']['deposits']['count']) ?></td>
+                    <td><?= e(number_format((float)$data['transactions']['deposits']['amount'], 0)) ?></td>
                 </tr>
                 <tr>
                     <td>برداشت‌ها</td>
-                    <td><?= $data['transactions']['withdrawals']['count'] ?></td>
-                    <td><?= number_format((float)$data['transactions']['withdrawals']['amount'], 0) ?></td>
+                    <td><?= e($data['transactions']['withdrawals']['count']) ?></td>
+                    <td><?= e(number_format((float)$data['transactions']['withdrawals']['amount'], 0)) ?></td>
                 </tr>
                 <tr>
                     <td>پرداخت‌ها</td>
-                    <td><?= $data['transactions']['payments']['count'] ?></td>
-                    <td><?= number_format((float)$data['transactions']['payments']['amount'], 0) ?></td>
+                    <td><?= e($data['transactions']['payments']['count']) ?></td>
+                    <td><?= e(number_format((float)$data['transactions']['payments']['amount'], 0)) ?></td>
                 </tr>
             </table>
             <?php endif; ?>
@@ -203,15 +203,15 @@ class ReportService
                 </tr>
                 <tr>
                     <td>درآمد کل</td>
-                    <td><?= number_format((float)$data['revenue']['income']['total'], 0) ?></td>
+                    <td><?= e(number_format((float)$data['revenue']['income']['total'], 0)) ?></td>
                 </tr>
                 <tr>
                     <td>هزینه‌ها</td>
-                    <td><?= number_format((float)$data['revenue']['expenses']['total'], 0) ?></td>
+                    <td><?= e(number_format((float)$data['revenue']['expenses']['total'], 0)) ?></td>
                 </tr>
                 <tr style="font-weight: bold; background: #e8f5e9;">
                     <td>سود خالص</td>
-                    <td><?= number_format((float)$data['revenue']['net_profit'], 0) ?></td>
+                    <td><?= e(number_format((float)$data['revenue']['net_profit'], 0)) ?></td>
                 </tr>
             </table>
             <?php endif; ?>
