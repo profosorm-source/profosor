@@ -74,6 +74,39 @@ class Wallet extends Model
     }
 
     /**
+     * بررسی وضعیت مسدود بودن کیف پول
+     */
+    public function isFrozen(int $userId): bool
+    {
+        $wallet = $this->findByUserId($userId);
+        if (!$wallet) {
+            return false;
+        }
+
+        return (bool)($wallet->is_frozen ?? 0);
+    }
+
+    /**
+     * مسدود کردن کیف پول برای کاربر
+     */
+    public function freezeWallet(int $userId): bool
+    {
+        $sql = "UPDATE " . static::$table . " SET is_frozen = 1, updated_at = NOW() WHERE user_id = :user_id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute(['user_id' => $userId]);
+    }
+
+    /**
+     * رفع مسدودیت کیف پول برای کاربر
+     */
+    public function unfreezeWallet(int $userId): bool
+    {
+        $sql = "UPDATE " . static::$table . " SET is_frozen = 0, updated_at = NOW() WHERE user_id = :user_id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute(['user_id' => $userId]);
+    }
+
+    /**
      * بروزرسانی موجودی
      */
     public function updateBalance(int $userId, float $amount, string $currency = 'irt'): bool

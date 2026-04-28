@@ -87,6 +87,21 @@ class Transaction extends Model
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($params);
     }
+
+    public function updateStatusByIdempotencyKey(string $idempotencyKey, string $status): bool
+    {
+        $sql = "UPDATE " . static::$table . " SET status = :status, updated_at = NOW()";
+        $params = ['idempotency_key' => $idempotencyKey, 'status' => $status];
+
+        if ($status === 'completed') {
+            $sql .= ", completed_at = NOW()";
+        }
+
+        $sql .= " WHERE idempotency_key = :idempotency_key";
+
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
+    }
     
     /**
      * ثبت تغییر وضعیت در transaction_events (Immutable Audit Trail)
@@ -482,16 +497,18 @@ class Transaction extends Model
      */
     public function updateStatusByTransactionId(string $transactionId, int $userId, string $status): bool
     {
-        $sql = "UPDATE " . static::$table . "
-                SET status = :status, updated_at = NOW()
-                WHERE transaction_id = :transaction_id AND user_id = :user_id";
+        $transaction = $this->findByTransactionId($transactionId);
+        if (!$transaction || (int)$transaction->user_id !== $userId) {
+            return false;
+        }
 
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            'status'         => $status,
-            'transaction_id' => $transactionId,
-            'user_id'        => $userId,
-        ]);
+        return $this->recordStatusChange(
+            $transactionId,
+            $status,
+            null,
+            null,
+            ['updated_by' => $userId]
+        );
     }
 
     /**
