@@ -5,6 +5,8 @@ namespace App\Middleware;
 use Core\Request;
 use Core\Response;
 
+use App\Services\RolePolicy;
+
 class AdminMiddleware
 {
     public function handle(Request $request, Response $response): bool
@@ -23,7 +25,7 @@ class AdminMiddleware
 
         $role = $session->get('user_role') ?? '';
 
-        if (!in_array($role, ['admin', 'super_admin', 'support'], true)) {
+        if (!RolePolicy::isAdmin($role)) {
             if (is_ajax()) {
                 $response->json(['success' => false, 'message' => 'دسترسی غیرمجاز'], 403);
                 exit;
